@@ -19,6 +19,7 @@ import {
 } from "@multica/core/agents";
 import { api } from "@multica/core/api";
 import { useFileUpload } from "@multica/core/hooks/use-file-upload";
+import { useAppLocale } from "@multica/i18n";
 import { timeAgo } from "@multica/core/utils";
 import { Button } from "@multica/ui/components/ui/button";
 import { ActorAvatar } from "../../common/actor-avatar";
@@ -89,6 +90,7 @@ export function AgentDetailInspector({
   canEdit,
   onUpdate,
 }: InspectorProps) {
+  const { t } = useAppLocale();
   const update = (data: Record<string, unknown>) => onUpdate(agent.id, data);
   const isOnline = runtime?.status === "online";
 
@@ -96,20 +98,19 @@ export function AgentDetailInspector({
     <aside className="flex h-full min-h-0 w-full flex-col overflow-y-auto rounded-lg border bg-background">
       {/* Identity */}
       <div className="flex flex-col gap-3 border-b px-5 pb-5 pt-5">
-        <AvatarEditor agent={agent} canEdit={canEdit} onUpdate={update} />
+        <AvatarEditor agent={agent} canEdit={canEdit} onUpdate={update} t={t} />
         <NameAndDescription
           agent={agent}
           canEdit={canEdit}
           onUpdate={update}
+          t={t}
         />
         <PresenceBadge presence={presence} />
       </div>
 
-      {/* Properties — editable when canEdit. When the current user lacks
-          permission, each picker self-renders a static read-only display so
-          the value is visible but not interactive. */}
-      <Section label="Properties">
-        <PropRow label="Runtime" interactive={false}>
+      {/* Properties */}
+      <Section label={t.agents.properties}>
+        <PropRow label={t.agents.runtime} interactive={false}>
           <RuntimePicker
             value={agent.runtime_id}
             runtimes={runtimes}
@@ -117,9 +118,10 @@ export function AgentDetailInspector({
             currentUserId={currentUserId}
             canEdit={canEdit}
             onChange={(id) => update({ runtime_id: id })}
+            t={t}
           />
         </PropRow>
-        <PropRow label="Model" interactive={false}>
+        <PropRow label={t.agents.model} interactive={false}>
           <ModelPicker
             runtimeId={agent.runtime_id}
             runtimeOnline={!!isOnline}
@@ -128,14 +130,14 @@ export function AgentDetailInspector({
             onChange={(m) => update({ model: m })}
           />
         </PropRow>
-        <PropRow label="Visibility" interactive={false}>
+        <PropRow label={t.agents.visibility} interactive={false}>
           <VisibilityPicker
             value={agent.visibility}
             canEdit={canEdit}
             onChange={(v) => update({ visibility: v })}
           />
         </PropRow>
-        <PropRow label="Concurrency" interactive={false}>
+        <PropRow label={t.agents.concurrency} interactive={false}>
           <ConcurrencyPicker
             value={agent.max_concurrent_tasks}
             canEdit={canEdit}
@@ -144,10 +146,10 @@ export function AgentDetailInspector({
         </PropRow>
       </Section>
 
-      {/* Details — read-only (no hover, no chip styling — these aren't clickable) */}
-      <Section label="Details">
+      {/* Details */}
+      <Section label={t.agents.details}>
         {owner && (
-          <PropRow label="Owner" interactive={false}>
+          <PropRow label={t.agents.owner} interactive={false}>
             <span className="flex min-w-0 items-center gap-1.5">
               <ActorAvatar
                 actorType="member"
@@ -158,12 +160,12 @@ export function AgentDetailInspector({
             </span>
           </PropRow>
         )}
-        <PropRow label="Created" interactive={false}>
+        <PropRow label={t.agents.created} interactive={false}>
           <span className="text-muted-foreground">
             {timeAgo(agent.created_at)}
           </span>
         </PropRow>
-        <PropRow label="Updated" interactive={false}>
+        <PropRow label={t.agents.updated} interactive={false}>
           <span className="text-muted-foreground">
             {timeAgo(agent.updated_at)}
           </span>
@@ -174,7 +176,7 @@ export function AgentDetailInspector({
       <div className="flex flex-col border-b px-5 py-4">
         <div className="mb-2 flex items-center gap-2">
           <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-            Skills
+            {t.agents.skillsSection}
           </span>
           <span className="font-mono text-[10px] tabular-nums text-muted-foreground/70">
             {agent.skills.length}
@@ -227,10 +229,12 @@ function AvatarEditor({
   agent,
   canEdit,
   onUpdate,
+  t,
 }: {
   agent: Agent;
   canEdit: boolean;
   onUpdate: (data: Record<string, unknown>) => Promise<void>;
+  t: ReturnType<typeof useAppLocale>["t"];
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { upload, uploading } = useFileUpload(api);
@@ -256,9 +260,9 @@ function AvatarEditor({
       const result = await upload(file);
       if (!result) return;
       await onUpdate({ avatar_url: result.link });
-      toast.success("Avatar updated");
+      toast.success(t.agents.avatarUpdated);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to upload avatar");
+      toast.error(err instanceof Error ? err.message : t.agents.avatarUploadFailed);
     }
   };
 
@@ -266,12 +270,10 @@ function AvatarEditor({
     <>
       <button
         type="button"
-        // rounded-lg matches the standard agent avatar treatment used in
-        // list rows. Avoid rounded-full — circles are reserved for humans.
         className="group relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         onClick={() => fileInputRef.current?.click()}
         disabled={uploading}
-        aria-label="Change avatar"
+        aria-label={t.agents.changeAvatar}
       >
         <ActorAvatar
           actorType="agent"
@@ -302,10 +304,12 @@ function NameAndDescription({
   agent,
   canEdit,
   onUpdate,
+  t,
 }: {
   agent: Agent;
   canEdit: boolean;
   onUpdate: (data: Record<string, unknown>) => Promise<void>;
+  t: ReturnType<typeof useAppLocale>["t"];
 }) {
   if (!canEdit) {
     return (
@@ -319,7 +323,7 @@ function NameAndDescription({
           </span>
         ) : (
           <span className="text-xs italic leading-relaxed text-muted-foreground/50">
-            No description
+            {t.agents.noDescription}
           </span>
         )}
       </div>
@@ -332,9 +336,10 @@ function NameAndDescription({
         value={agent.name}
         onSave={(v) => onUpdate({ name: v.trim() })}
         kind="input"
-        title="Rename agent"
-        placeholder="Agent name"
-        validate={(v) => (v.trim().length > 0 ? null : "Name is required")}
+        title={t.agents.renameAgent}
+        placeholder={t.agents.agentNamePlaceholder}
+        validate={(v) => (v.trim().length > 0 ? null : t.agents.nameRequired)}
+        t={t}
       >
         {(triggerProps) => (
           <button
@@ -351,6 +356,7 @@ function NameAndDescription({
       <DescriptionEditor
         value={agent.description ?? ""}
         onSave={(v) => onUpdate({ description: v })}
+        t={t}
       />
     </div>
   );
@@ -371,9 +377,11 @@ function NameAndDescription({
 function DescriptionEditor({
   value,
   onSave,
+  t,
 }: {
   value: string;
   onSave: (next: string) => Promise<void>;
+  t: ReturnType<typeof useAppLocale>["t"];
 }) {
   const [open, setOpen] = useState(false);
 
@@ -387,7 +395,7 @@ function DescriptionEditor({
         {value ? (
           <span className="text-muted-foreground">{value}</span>
         ) : (
-          <span className="italic text-muted-foreground/50">No description</span>
+          <span className="italic text-muted-foreground/50">{t.agents.noDescription}</span>
         )}
         <Pencil className="mt-0.5 h-3 w-3 shrink-0 text-muted-foreground/0 transition-colors group-hover:text-muted-foreground" />
       </button>
@@ -399,6 +407,7 @@ function DescriptionEditor({
               initialValue={value}
               onSave={onSave}
               onClose={() => setOpen(false)}
+              t={t}
             />
           )}
         </DialogContent>
@@ -411,10 +420,12 @@ function DescriptionEditorBody({
   initialValue,
   onSave,
   onClose,
+  t,
 }: {
   initialValue: string;
   onSave: (next: string) => Promise<void>;
   onClose: () => void;
+  t: ReturnType<typeof useAppLocale>["t"];
 }) {
   const [draft, setDraft] = useState(initialValue);
   const [saving, setSaving] = useState(false);
@@ -439,14 +450,14 @@ function DescriptionEditorBody({
   return (
     <>
       <DialogHeader>
-        <DialogTitle>Edit description</DialogTitle>
+        <DialogTitle>{t.agents.editDescription}</DialogTitle>
       </DialogHeader>
       <div className="flex flex-col gap-2">
         <textarea
           autoFocus
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
-          placeholder="What does this agent do?"
+          placeholder={t.agents.whatDoesAgentDo}
           rows={6}
           onKeyDown={(e) => {
             if (e.key === "Escape") onClose();
@@ -466,14 +477,14 @@ function DescriptionEditorBody({
           onClick={onClose}
           disabled={saving}
         >
-          Cancel
+          {t.common.cancel}
         </Button>
         <Button
           size="sm"
           onClick={() => void commit()}
           disabled={saving || overLimit || !dirty}
         >
-          {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Save"}
+          {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : t.common.save}
         </Button>
       </DialogFooter>
     </>
@@ -491,6 +502,7 @@ function InlineEditPopover({
   placeholder,
   validate,
   children,
+  t,
 }: {
   value: string;
   onSave: (next: string) => Promise<void>;
@@ -501,6 +513,7 @@ function InlineEditPopover({
   children: (triggerProps: {
     onClick: (e: React.MouseEvent) => void;
   }) => ReactNode;
+  t: ReturnType<typeof useAppLocale>["t"];
 }) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState(value);
@@ -591,7 +604,7 @@ function InlineEditPopover({
               onClick={() => setOpen(false)}
               disabled={saving}
             >
-              Cancel
+              {t.common.cancel}
             </Button>
             <Button
               size="sm"
@@ -601,7 +614,7 @@ function InlineEditPopover({
               {saving ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
               ) : (
-                "Save"
+                t.common.save
               )}
             </Button>
           </div>

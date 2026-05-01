@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Tag, Plus, Settings2 } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogTitle } from "@multica/ui/components/ui/dialog";
+import { useAppLocale } from "@multica/i18n";
 import { useWorkspaceId } from "@multica/core/hooks";
 import {
   labelListOptions,
@@ -67,17 +68,12 @@ export function LabelPicker({
   onOpenChange,
   align = "start",
 }: LabelPickerProps) {
+  const { t } = useAppLocale();
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
   const setOpen = onOpenChange ?? setInternalOpen;
   const [filter, setFilter] = useState("");
   const [manageOpen, setManageOpen] = useState(false);
-
-  // Synchronous lock to prevent double-submit on rapid Enter / click. React
-  // state (create.isPending, filter) isn't visible until the next render, so
-  // two events within the same tick can both pass the canCreate guard and
-  // fire two create.mutate calls — the second hits 409 and shows a red toast
-  // for an error the user didn't cause. A ref closes the window cleanly.
   const creatingRef = useRef(false);
 
   const wsId = useWorkspaceId();

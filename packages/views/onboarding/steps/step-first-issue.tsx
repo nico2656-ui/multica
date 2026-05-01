@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { useAppLocale } from "@multica/i18n";
 import { Button } from "@multica/ui/components/ui/button";
 import {
   completeOnboarding,
@@ -38,6 +39,7 @@ export function StepFirstIssue({
    *  both in scope. */
   completionPath: OnboardingCompletionPath;
 }) {
+  const { t } = useAppLocale();
   const [error, setError] = useState<string | null>(null);
   const [retrying, setRetrying] = useState(false);
   const started = useRef(false);
@@ -84,7 +86,7 @@ export function StepFirstIssue({
         </div>
         <div className="flex flex-col gap-2">
           <h1 className="text-2xl font-semibold tracking-tight">
-            Something went wrong
+            {t.onboarding.firstIssueTitle}
           </h1>
           <p className="text-sm text-muted-foreground">{error}</p>
         </div>
@@ -101,10 +103,10 @@ export function StepFirstIssue({
       <Loader2 className="h-10 w-10 animate-spin text-primary" />
       <div className="flex flex-col gap-2">
         <h1 className="text-2xl font-semibold tracking-tight">
-          Finishing up
+            {t.onboarding.firstIssueTitle}
         </h1>
         <p className="text-sm text-muted-foreground">
-          Almost there — opening your workspace.
+          {t.onboarding.firstIssueDescription}
         </p>
       </div>
     </div>

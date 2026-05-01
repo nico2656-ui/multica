@@ -34,6 +34,7 @@ import {
 } from "@multica/ui/components/ui/popover";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@multica/ui/components/ui/tooltip";
 import type { Project, ProjectStatus, ProjectPriority, UpdateProjectRequest } from "@multica/core/types";
+import { useAppLocale } from "@multica/i18n";
 import { PageHeader } from "../../layout/page-header";
 import { PriorityIcon } from "../../issues/components/priority-icon";
 import { ProjectIcon } from "./project-icon";
@@ -51,6 +52,7 @@ function formatRelativeDate(date: string): string {
 function ProjectRow({ project }: { project: Project }) {
   const wsId = useWorkspaceId();
   const wsPaths = useWorkspacePaths();
+  const { t } = useAppLocale();
   const statusCfg = PROJECT_STATUS_CONFIG[project.status];
   const priorityCfg = PROJECT_PRIORITY_CONFIG[project.priority];
   const updateProject = useUpdateProject();
@@ -182,7 +184,7 @@ function ProjectRow({ project }: { project: Project }) {
             </button>
             {filteredMembers.length > 0 && (
               <>
-                <div className="px-2 pt-2 pb-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">Members</div>
+                <div className="px-2 pt-2 pb-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">{t.issues.members}</div>
                 {filteredMembers.map((m) => (
                   <button
                     type="button"
@@ -198,7 +200,7 @@ function ProjectRow({ project }: { project: Project }) {
             )}
             {filteredAgents.length > 0 && (
               <>
-                <div className="px-2 pt-2 pb-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">Agents</div>
+                <div className="px-2 pt-2 pb-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">{t.issues.agents}</div>
                 {filteredAgents.map((a) => (
                   <button
                     type="button"
@@ -213,7 +215,7 @@ function ProjectRow({ project }: { project: Project }) {
               </>
             )}
             {filteredMembers.length === 0 && filteredAgents.length === 0 && leadFilter && (
-              <div className="px-2 py-3 text-center text-sm text-muted-foreground">No results</div>
+              <div className="px-2 py-3 text-center text-sm text-muted-foreground">{t.common.noResults}</div>
             )}
           </div>
         </PopoverContent>
@@ -230,6 +232,7 @@ function ProjectRow({ project }: { project: Project }) {
 
 export function ProjectsPage() {
   const wsId = useWorkspaceId();
+  const { t } = useAppLocale();
   const { data: projects = [], isLoading } = useQuery(projectListOptions(wsId));
   const openCreateProject = () => useModalStore.getState().open("create-project");
 
@@ -239,14 +242,14 @@ export function ProjectsPage() {
       <PageHeader className="justify-between px-5">
         <div className="flex items-center gap-2">
           <FolderKanban className="h-4 w-4 text-muted-foreground" />
-          <h1 className="text-sm font-medium">Projects</h1>
+          <h1 className="text-sm font-medium">{t.projects.pageTitle}</h1>
           {!isLoading && projects.length > 0 && (
             <span className="text-xs text-muted-foreground tabular-nums">{projects.length}</span>
           )}
         </div>
         <Button size="sm" variant="outline" onClick={openCreateProject}>
           <Plus className="h-3.5 w-3.5 mr-1" />
-          New project
+          {t.projects.newProject}
         </Button>
       </PageHeader>
 
@@ -272,9 +275,9 @@ export function ProjectsPage() {
         ) : projects.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-muted-foreground">
             <FolderKanban className="h-10 w-10 mb-3 opacity-30" />
-            <p className="text-sm">No projects yet</p>
+            <p className="text-sm">{t.projects.noProjectsYet}</p>
             <Button size="sm" variant="outline" className="mt-3" onClick={openCreateProject}>
-              Create your first project
+              {t.projects.newProject}
             </Button>
           </div>
         ) : (
@@ -287,7 +290,7 @@ export function ProjectsPage() {
               <span className="w-24 text-center shrink-0">Priority</span>
               <span className="w-28 text-center shrink-0">Status</span>
               <span className="w-24 text-center shrink-0">Progress</span>
-              <span className="w-10 text-center shrink-0">Lead</span>
+              <span className="w-10 text-center shrink-0">{t.projects.projectLead}</span>
               <span className="w-20 text-right shrink-0">Created</span>
             </div>
             {/* Rows */}

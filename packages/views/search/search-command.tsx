@@ -50,6 +50,7 @@ import {
 import { useTheme } from "@multica/ui/components/common/theme-provider";
 import { useNavigation } from "../navigation";
 import { useSearchStore } from "./search-store";
+import { useAppLocale } from "@multica/i18n";
 
 function HighlightText({ text, query }: { text: string; query: string }) {
   const parts = useMemo(() => {
@@ -135,6 +136,7 @@ interface SearchResults {
 }
 
 export function SearchCommand() {
+  const { t } = useAppLocale();
   const { push, pathname, getShareableUrl } = useNavigation();
   const open = useSearchStore((s) => s.open);
   const setOpen = useSearchStore((s) => s.setOpen);
@@ -223,7 +225,7 @@ export function SearchCommand() {
       items.push(
         {
           key: "copy-issue-link",
-          label: "Copy Issue Link",
+          label: t.search.copyLink,
           icon: Link2,
           keywords: ["copy", "link", "share", "url", identifier.toLowerCase()],
           onSelect: () => {
@@ -462,7 +464,7 @@ export function SearchCommand() {
           <div className="flex items-center gap-3 border-b px-4 py-3">
             <SearchIcon className="size-5 shrink-0 text-muted-foreground" />
             <CommandPrimitive.Input
-              placeholder="Type a command or search..."
+              placeholder={t.search.placeholder}
               value={query}
               onValueChange={handleValueChange}
               className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
@@ -478,7 +480,7 @@ export function SearchCommand() {
             {filteredPages.length > 0 && (
               <CommandPrimitive.Group className="p-2">
                 <div className="px-3 py-1.5 text-xs font-medium text-muted-foreground">
-                  Pages
+                  {t.search.navigation}
                 </div>
                 {filteredPages.map((page) => (
                   <CommandPrimitive.Item
@@ -523,7 +525,7 @@ export function SearchCommand() {
             {filteredWorkspaces.length > 0 && (
               <CommandPrimitive.Group className="p-2">
                 <div className="px-3 py-1.5 text-xs font-medium text-muted-foreground">
-                  Switch Workspace
+                  {t.search.switchWorkspace}
                 </div>
                 {filteredWorkspaces.map((ws) => (
                   <CommandPrimitive.Item
@@ -557,13 +559,13 @@ export function SearchCommand() {
               filteredCommands.length === 0 &&
               filteredWorkspaces.length === 0 && (
                 <CommandPrimitive.Empty className="py-10 text-center text-sm text-muted-foreground">
-                  No results found.
+                  {t.search.noResults}
                 </CommandPrimitive.Empty>
               )}
 
             {!isLoading && results.projects.length > 0 && (
               <CommandPrimitive.Group
-                heading="Projects"
+                heading={t.search.projects}
                 className="p-2 [&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground"
               >
                 {results.projects.map((project) => (
@@ -602,7 +604,7 @@ export function SearchCommand() {
 
             {!isLoading && results.issues.length > 0 && (
               <CommandPrimitive.Group
-                heading="Issues"
+                heading={t.search.issues}
                 className="p-2 [&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground"
               >
                 {results.issues.map((issue) => (
@@ -650,7 +652,7 @@ export function SearchCommand() {
               <CommandPrimitive.Group className="p-2">
                 <div className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-muted-foreground">
                   <Clock className="size-3" />
-                  <span>Recent</span>
+                  <span>{t.search.recent}</span>
                 </div>
                 {recentIssues.map((item) => (
                   <CommandPrimitive.Item

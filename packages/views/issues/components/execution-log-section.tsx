@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronRight, Loader2, Square } from "lucide-react";
 import { toast } from "sonner";
+import { useAppLocale } from "@multica/i18n";
 import { api } from "@multica/core/api";
 import { issueKeys } from "@multica/core/issues/queries";
 import type { AgentTask, TaskFailureReason } from "@multica/core/types";
@@ -65,6 +66,7 @@ const PAST_STATUS_RANK: Record<string, number> = {
 };
 
 export function ExecutionLogSection({ issueId }: ExecutionLogSectionProps) {
+  const { t } = useAppLocale();
   const [open, setOpen] = useState(true);
   const [showPast, setShowPast] = useState(false);
 
@@ -122,7 +124,7 @@ export function ExecutionLogSection({ issueId }: ExecutionLogSectionProps) {
         }`}
         onClick={() => setOpen(!open)}
       >
-        Execution log
+        {t.issues.executionLog}
         <ChevronRight
           className={`!size-3 shrink-0 stroke-[2.5] text-muted-foreground transition-transform ${
             open ? "rotate-90" : ""
@@ -236,6 +238,7 @@ function activeTimeText(task: AgentTask): string {
 // ─── Active row ────────────────────────────────────────────────────────────
 
 function ActiveRow({ task, issueId }: { task: AgentTask; issueId: string }) {
+  const { t } = useAppLocale();
   const [cancelling, setCancelling] = useState(false);
   const cfg = STATUS_VISUAL[task.status];
   const trigger = buildTriggerText(task);
@@ -271,7 +274,7 @@ function ActiveRow({ task, issueId }: { task: AgentTask; issueId: string }) {
             task={task}
             agentName=""
             isLive
-            title="View transcript"
+            title={t.issues.agentLiveCard.transcript}
           />
         )}
         <Tooltip>
@@ -281,7 +284,7 @@ function ActiveRow({ task, issueId }: { task: AgentTask; issueId: string }) {
                 type="button"
                 onClick={handleCancel}
                 disabled={cancelling}
-                aria-label="Cancel task"
+                aria-label={t.issues.agentLiveCard.cancel}
               />
             }
             className="flex items-center justify-center rounded p-1 text-destructive transition-colors hover:bg-destructive/10 disabled:cursor-not-allowed disabled:opacity-50"
@@ -292,7 +295,7 @@ function ActiveRow({ task, issueId }: { task: AgentTask; issueId: string }) {
               <Square className="h-3.5 w-3.5" />
             )}
           </TooltipTrigger>
-          <TooltipContent>Cancel task</TooltipContent>
+          <TooltipContent>{t.issues.agentLiveCard.cancel}</TooltipContent>
         </Tooltip>
       </RowActions>
     </RowShell>
@@ -302,6 +305,7 @@ function ActiveRow({ task, issueId }: { task: AgentTask; issueId: string }) {
 // ─── Past row ──────────────────────────────────────────────────────────────
 
 function PastRow({ task }: { task: AgentTask }) {
+  const { t } = useAppLocale();
   const cfg = STATUS_VISUAL[task.status];
   const trigger = buildTriggerText(task);
   const time = task.completed_at ? timeAgo(task.completed_at) : "—";
@@ -318,7 +322,7 @@ function PastRow({ task }: { task: AgentTask }) {
         <span className="text-muted-foreground"> · {time}</span>
       </span>
       <RowActions>
-        <TranscriptButton task={task} agentName="" title="View transcript" />
+        <TranscriptButton task={task} agentName="" title={t.issues.agentLiveCard.transcript} />
       </RowActions>
     </RowShell>
   );

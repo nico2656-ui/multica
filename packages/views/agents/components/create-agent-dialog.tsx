@@ -29,6 +29,7 @@ import { Button } from "@multica/ui/components/ui/button";
 import { Input } from "@multica/ui/components/ui/input";
 import { Label } from "@multica/ui/components/ui/label";
 import { toast } from "sonner";
+import { useAppLocale } from "@multica/i18n";
 import {
   AGENT_DESCRIPTION_MAX_LENGTH,
   VISIBILITY_DESCRIPTION,
@@ -51,17 +52,11 @@ export function CreateAgentDialog({
   runtimesLoading?: boolean;
   members: MemberWithUser[];
   currentUserId: string | null;
-  // When provided, the dialog opens in "Duplicate" mode: the visible
-  // fields (name / description / runtime / visibility / model) are
-  // pre-populated from this agent, and the hidden fields
-  // (instructions / custom_args / custom_env / max_concurrent_tasks)
-  // are forwarded to the create call so the new agent is a true clone.
-  // Skills are copied separately by the caller after createAgent
-  // succeeds — they're not part of CreateAgentRequest.
   template?: Agent | null;
   onClose: () => void;
   onCreate: (data: CreateAgentRequest) => Promise<void>;
 }) {
+  const { t } = useAppLocale();
   const isDuplicate = !!template;
   const [name, setName] = useState(
     template ? `${template.name} (Copy)` : "",
@@ -141,7 +136,7 @@ export function CreateAgentDialog({
       await onCreate(data);
       onClose();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to create agent");
+      toast.error(err instanceof Error ? err.message : t.agents.createFailed);
       setCreating(false);
     }
   };
@@ -151,18 +146,18 @@ export function CreateAgentDialog({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>
-            {isDuplicate ? "Duplicate Agent" : "Create Agent"}
+            {isDuplicate ? t.agents.duplicateAgent : t.agents.createAgent}
           </DialogTitle>
           <DialogDescription>
             {isDuplicate
               ? `Create a new agent based on "${template!.name}". Instructions, env, and skills are copied for you.`
-              : "Create a new AI agent for your workspace."}
+              : t.agents.createAgentDesc}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 min-w-0">
           <div>
-            <Label className="text-xs text-muted-foreground">Name</Label>
+            <Label className="text-xs text-muted-foreground">{t.agents.name}</Label>
             <Input
               autoFocus
               type="text"
@@ -175,12 +170,12 @@ export function CreateAgentDialog({
           </div>
 
           <div>
-            <Label className="text-xs text-muted-foreground">Description</Label>
+            <Label className="text-xs text-muted-foreground">{t.agents.description}</Label>
             <Input
               type="text"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="What does this agent do?"
+              placeholder={t.agents.whatDoesAgentDo}
               maxLength={AGENT_DESCRIPTION_MAX_LENGTH}
               className="mt-1"
             />
@@ -193,7 +188,7 @@ export function CreateAgentDialog({
           </div>
 
           <div>
-            <Label className="text-xs text-muted-foreground">Visibility</Label>
+            <Label className="text-xs text-muted-foreground">{t.agents.visibility}</Label>
             <div className="mt-1.5 flex gap-2">
               <button
                 type="button"
@@ -208,7 +203,7 @@ export function CreateAgentDialog({
                 <div className="text-left">
                   <div className="font-medium">{VISIBILITY_LABEL.workspace}</div>
                   <div className="text-xs text-muted-foreground">
-                    {VISIBILITY_DESCRIPTION.workspace}
+                    {t.agents.visibilityDesc.workspace ?? VISIBILITY_DESCRIPTION.workspace}
                   </div>
                 </div>
               </button>
@@ -225,7 +220,7 @@ export function CreateAgentDialog({
                 <div className="text-left">
                   <div className="font-medium">{VISIBILITY_LABEL.private}</div>
                   <div className="text-xs text-muted-foreground">
-                    {VISIBILITY_DESCRIPTION.private}
+                    {t.agents.visibilityDesc.private ?? VISIBILITY_DESCRIPTION.private}
                   </div>
                 </div>
               </button>
@@ -234,7 +229,7 @@ export function CreateAgentDialog({
 
           <div className="min-w-0">
             <div className="flex items-center justify-between">
-              <Label className="text-xs text-muted-foreground">Runtime</Label>
+              <Label className="text-xs text-muted-foreground">{t.agents.runtime}</Label>
               {hasOtherRuntimes && (
                 <div className="flex items-center gap-0.5 rounded-md bg-muted p-0.5">
                   <button
@@ -246,7 +241,7 @@ export function CreateAgentDialog({
                         : "text-muted-foreground hover:text-foreground"
                     }`}
                   >
-                    Mine
+                    {t.agents.mine}
                   </button>
                   <button
                     type="button"
@@ -257,7 +252,7 @@ export function CreateAgentDialog({
                         : "text-muted-foreground hover:text-foreground"
                     }`}
                   >
-                    All
+                    {t.agents.all_}
                   </button>
                 </div>
               )}
@@ -351,13 +346,13 @@ export function CreateAgentDialog({
 
         <DialogFooter>
           <Button variant="ghost" onClick={onClose}>
-            Cancel
+            {t.common.cancel}
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={creating || !name.trim() || !selectedRuntime}
           >
-            {creating ? "Creating..." : "Create"}
+            {creating ? t.common.creating : t.common.create}
           </Button>
         </DialogFooter>
       </DialogContent>

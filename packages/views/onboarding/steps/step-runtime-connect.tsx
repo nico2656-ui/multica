@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
 import { captureEvent, setPersonProperties } from "@multica/core/analytics";
+import { useAppLocale } from "@multica/i18n";
 import { Button } from "@multica/ui/components/ui/button";
 import {
   Dialog,
@@ -94,6 +95,7 @@ function FancyView({
   onBack?: () => void;
   onWaitlistSubmitted?: () => void;
 }) {
+  const { t } = useAppLocale();
   const mainRef = useRef<HTMLElement>(null);
   const fadeStyle = useScrollFade(mainRef);
 
@@ -214,7 +216,7 @@ function FancyView({
               className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
-              Back
+              {t.common.back}
             </button>
           ) : (
             <span aria-hidden className="w-0" />
@@ -286,7 +288,7 @@ function FancyView({
             onClick={handleContinue}
           >
             {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-            Continue
+            {t.onboarding.continue}
             <ArrowRight className="h-4 w-4" />
           </Button>
         </footer>
@@ -309,18 +311,14 @@ function FancyView({
 // ------------------------------------------------------------
 
 function ScanningView() {
+  const { t } = useAppLocale();
   return (
     <div>
       <h1 className="text-balance font-serif text-[36px] font-medium leading-[1.1] tracking-tight text-foreground">
-        Looking for your tools…
+        {t.onboarding.scanning}
       </h1>
       <p className="mt-4 max-w-[560px] text-[15.5px] leading-[1.55] text-muted-foreground">
-        Multica drives local AI coding tools like{" "}
-        <span className="font-medium text-foreground">Claude Code</span>,{" "}
-        <span className="font-medium text-foreground">Codex</span>,{" "}
-        <span className="font-medium text-foreground">Cursor</span>, and
-        others. We&apos;re waiting to hear back from your machine about
-        which ones are installed.
+        {t.onboarding.runtimeDescription}
       </p>
       <div className="mt-10 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
         <SkeletonRuntimeCard />
@@ -341,6 +339,7 @@ function FoundView({
   onSelect: (id: string) => void;
   onlineCount: number;
 }) {
+  const { t } = useAppLocale();
   const total = runtimes.length;
   const statusLabel =
     onlineCount === total
@@ -354,11 +353,10 @@ function FoundView({
   return (
     <div>
       <h1 className="text-balance font-serif text-[36px] font-medium leading-[1.1] tracking-tight text-foreground">
-        We found your runtimes.
+        {t.onboarding.runtimeTitle}
       </h1>
       <p className="mt-4 max-w-[560px] text-[15.5px] leading-[1.55] text-muted-foreground">
-        We scanned your machine for AI coding tools you&apos;ve already
-        set up. Pick one for your first agent.
+        {t.onboarding.runtimeDescription}
       </p>
 
       {/* Summary strip — trust signal ("we really did scan") */}
@@ -402,6 +400,7 @@ function EmptyView({
   onWaitlistSubmitted: () => void;
   onSkip: () => void;
 }) {
+  const { t } = useAppLocale();
   // Two exits: "Skip for now" (enter the workspace in read-only mode)
   // or "Join waitlist" (capture interest in the hosted runtime we
   // haven't shipped yet). We deliberately don't link out to Claude
@@ -413,15 +412,10 @@ function EmptyView({
   return (
     <div>
       <h1 className="text-balance font-serif text-[36px] font-medium leading-[1.1] tracking-tight text-foreground">
-        No supported tools detected.
+        {t.onboarding.noRuntimeFound}
       </h1>
       <p className="mt-4 max-w-[560px] text-[15.5px] leading-[1.55] text-muted-foreground">
-        Multica drives local AI coding tools like{" "}
-        <span className="font-medium text-foreground">Claude Code</span>,{" "}
-        <span className="font-medium text-foreground">Codex</span>,{" "}
-        <span className="font-medium text-foreground">Cursor</span>, and
-        others — we didn&apos;t find any on this machine. Install one and
-        come back, or pick a path below.
+        {t.onboarding.runtimeDescription}
       </p>
 
       <div className="mt-10 flex flex-col gap-3.5">
@@ -462,7 +456,7 @@ function EmptyView({
 
           <DialogFooter>
             <Button variant="ghost" onClick={() => setWaitlistOpen(false)}>
-              {waitlistSubmitted ? "Close" : "Cancel"}
+              {waitlistSubmitted ? t.onboarding.cloudWaitlist : t.common.cancel}
             </Button>
           </DialogFooter>
         </DialogContent>

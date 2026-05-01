@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useAppLocale } from "@multica/i18n";
 import { Button } from "@multica/ui/components/ui/button";
 import { useScrollFade } from "@multica/ui/hooks/use-scroll-fade";
 import { cn } from "@multica/ui/lib/utils";
@@ -106,6 +107,7 @@ export function StepAgent({
   onCreated: (agent: Agent) => void | Promise<void>;
   onBack?: () => void;
 }) {
+  const { t } = useAppLocale();
   const recommendedId = recommendTemplate(questionnaire);
   const recommended = TEMPLATE_BY_ID[recommendedId];
 
@@ -154,7 +156,7 @@ export function StepAgent({
               className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
-              Back
+              {t.common.back}
             </button>
           ) : (
             <span aria-hidden className="w-0" />
@@ -174,19 +176,13 @@ export function StepAgent({
         >
           <div className="mx-auto w-full max-w-[620px] px-6 py-10 sm:px-10 md:px-14 lg:px-0 lg:py-14">
             <div className="mb-2 text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
-              Your first agent
+              {t.onboarding.agentTitle}
             </div>
             <h1 className="text-balance font-serif text-[36px] font-medium leading-[1.1] tracking-tight text-foreground">
-              Meet your first teammate.
+              {t.onboarding.agentTitle}
             </h1>
             <p className="mt-4 text-[15.5px] leading-[1.55] text-foreground/80">
-              Your answers point to a{" "}
-              <strong className="font-medium text-foreground">
-                {recommended.label}
-              </strong>
-              . Pick whichever of the four fits you — each template ships
-              ready to take its first issue. You can retune its
-              instructions from the agent settings page later.
+              {t.onboarding.agentDescription}
             </p>
 
             <div className="mt-10 grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -208,11 +204,11 @@ export function StepAgent({
             the agent IS this step. */}
         <footer className="flex shrink-0 items-center justify-between gap-4 bg-background px-6 py-4 sm:px-10 md:px-14 lg:px-16">
           <span className="hidden text-xs text-muted-foreground sm:block">
-            One agent is enough to start. Add more from the sidebar later.
+            {t.onboarding.agentDescription}
           </span>
           <Button size="lg" onClick={handleCreate} disabled={creating}>
             {creating && <Loader2 className="h-4 w-4 animate-spin" />}
-            Create {template.defaultName}
+            {t.common.create} {template.defaultName}
             <ArrowRight className="h-4 w-4" />
           </Button>
         </footer>

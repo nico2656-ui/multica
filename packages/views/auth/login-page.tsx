@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useAppLocale } from "@multica/i18n";
 import {
   Card,
   CardHeader,
@@ -105,6 +106,7 @@ export function LoginPage({
   onGoogleLogin,
   extra,
 }: LoginPageProps) {
+  const { t } = useAppLocale();
   const qc = useQueryClient();
   const [step, setStep] = useState<"email" | "code" | "cli_confirm">("email");
   const [email, setEmail] = useState("");
@@ -292,9 +294,9 @@ export function LoginPage({
         <Card className="w-full max-w-sm">
           <CardHeader className="text-center">
             {logo && <div className="mx-auto mb-4">{logo}</div>}
-            <CardTitle className="text-2xl">Authorize CLI</CardTitle>
+            <CardTitle className="text-2xl">{t.auth.authorizeCli}</CardTitle>
             <CardDescription>
-              Allow the CLI to access Multica as{" "}
+              {t.auth.authorize}{" "}
               <span className="font-medium text-foreground">
                 {existingUser.email}
               </span>
@@ -308,7 +310,7 @@ export function LoginPage({
               className="w-full"
               size="lg"
             >
-              {loading ? "Authorizing..." : "Authorize"}
+              {loading ? t.auth.authorizing : t.auth.authorize}
             </Button>
             <Button
               variant="ghost"
@@ -318,7 +320,7 @@ export function LoginPage({
                 setStep("email");
               }}
             >
-              Use a different account
+              {t.auth.useDifferentAccount}
             </Button>
           </CardContent>
         </Card>
@@ -336,10 +338,9 @@ export function LoginPage({
         <Card className="w-full max-w-sm">
           <CardHeader className="text-center">
             {logo && <div className="mx-auto mb-4">{logo}</div>}
-            <CardTitle className="text-2xl">Check your email</CardTitle>
+            <CardTitle className="text-2xl">{t.auth.checkEmail}</CardTitle>
             <CardDescription>
-              We sent a verification code to{" "}
-              <span className="font-medium text-foreground">{email}</span>
+              {t.auth.codeSent(email)}
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-4">
@@ -371,7 +372,7 @@ export function LoginPage({
                 disabled={cooldown > 0}
                 className="text-primary underline-offset-4 hover:underline disabled:text-muted-foreground disabled:no-underline disabled:cursor-not-allowed"
               >
-                {cooldown > 0 ? `Resend in ${cooldown}s` : "Resend code"}
+                {cooldown > 0 ? t.auth.resendIn(cooldown) : t.auth.resendCode}
               </button>
             </div>
           </CardContent>
@@ -386,7 +387,7 @@ export function LoginPage({
                 setError("");
               }}
             >
-              Back
+              {t.common.back}
             </Button>
           </CardFooter>
         </Card>
@@ -403,15 +404,15 @@ export function LoginPage({
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           {logo && <div className="mx-auto mb-4">{logo}</div>}
-          <CardTitle className="text-2xl">Sign in to Multica</CardTitle>
+          <CardTitle className="text-2xl">{t.auth.signIn}</CardTitle>
           <CardDescription>
-            Enter your email to get a login code
+            {t.auth.signInDescription}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form id="login-form" onSubmit={handleSendCode} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="login-email">Email</Label>
+              <Label htmlFor="login-email">{t.auth.email}</Label>
               <Input
                 id="login-email"
                 type="email"
@@ -435,7 +436,7 @@ export function LoginPage({
             size="lg"
             disabled={!email || loading}
           >
-            {loading ? "Sending code..." : "Continue"}
+            {loading ? t.auth.sendingCode : t.auth.continue}
           </Button>
           {(google || onGoogleLogin) && (
             <>
@@ -444,7 +445,7 @@ export function LoginPage({
                   <span className="w-full border-t" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-card px-2 text-muted-foreground">or</span>
+                  <span className="bg-card px-2 text-muted-foreground">{t.auth.or}</span>
                 </div>
               </div>
               <Button
@@ -473,7 +474,7 @@ export function LoginPage({
                     fill="#EA4335"
                   />
                 </svg>
-                Continue with Google
+                {t.auth.continueWithGoogle}
               </Button>
             </>
           )}

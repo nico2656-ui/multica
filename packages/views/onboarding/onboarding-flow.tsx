@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useAppLocale } from "@multica/i18n";
 import { setCurrentWorkspace } from "@multica/core/platform";
 import { useAuthStore } from "@multica/core/auth";
 import {
@@ -55,6 +56,7 @@ export function OnboardingFlow({
   onComplete: (workspace?: Workspace) => void;
   runtimeInstructions?: React.ReactNode;
 }) {
+  const { t } = useAppLocale();
   const user = useAuthStore((s) => s.user);
   if (!user) {
     throw new Error("OnboardingFlow requires an authenticated user");
@@ -114,7 +116,7 @@ export function OnboardingFlow({
       await completeOnboarding("skip_existing");
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : "Failed to finish onboarding",
+        err instanceof Error ? err.message : t.onboarding.firstIssueDescription,
       );
       return;
     }

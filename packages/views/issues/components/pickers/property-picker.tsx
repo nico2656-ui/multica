@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import { Check } from "lucide-react";
+import { useAppLocale } from "@multica/i18n";
 import {
   Popover,
   PopoverTrigger,
@@ -260,9 +261,10 @@ export function PickerSection({
 // ---------------------------------------------------------------------------
 
 export function PickerEmpty() {
+  const { t } = useAppLocale();
   return (
     <div className="px-2 py-3 text-center text-sm text-muted-foreground">
-      No results
+      {t.common.noResults}
     </div>
   );
 }

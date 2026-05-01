@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "@multica/ui/lib/utils";
 import { AppLink, useNavigation } from "../navigation";
 import { HelpLauncher } from "./help-launcher";
+import { useAppLocale, localeLabels, type Locale } from "@multica/i18n";
 import {
   DndContext,
   PointerSensor,
@@ -109,23 +110,7 @@ type NavKey =
   | "skills"
   | "settings";
 
-const personalNav: { key: NavKey; label: string; icon: typeof Inbox }[] = [
-  { key: "inbox", label: "Inbox", icon: Inbox },
-  { key: "myIssues", label: "My Issues", icon: CircleUser },
-];
 
-const workspaceNav: { key: NavKey; label: string; icon: typeof Inbox }[] = [
-  { key: "issues", label: "Issues", icon: ListTodo },
-  { key: "projects", label: "Projects", icon: FolderKanban },
-  { key: "autopilots", label: "Autopilot", icon: Zap },
-  { key: "agents", label: "Agents", icon: Bot },
-];
-
-const configureNav: { key: NavKey; label: string; icon: typeof Inbox }[] = [
-  { key: "runtimes", label: "Runtimes", icon: Monitor },
-  { key: "skills", label: "Skills", icon: BookOpenText },
-  { key: "settings", label: "Settings", icon: Settings },
-];
 
 function DraftDot() {
   const hasDraft = useIssueDraftStore((s) => !!(s.draft.title || s.draft.description));
@@ -155,6 +140,7 @@ function SortablePinItem({
   iconNode: React.ReactNode;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: pin.id });
+  const { t } = useAppLocale();
   const wasDragged = useRef(false);
 
   useEffect(() => {
@@ -208,7 +194,7 @@ function SortablePinItem({
           >
             <X className="size-1" />
           </TooltipTrigger>
-          <TooltipContent side="top" sideOffset={4}>Unpin</TooltipContent>
+          <TooltipContent side="top" sideOffset={4}>{t.layout.unpin}</TooltipContent>
         </Tooltip>
       </SidebarMenuButton>
     </SidebarMenuItem>
@@ -335,6 +321,26 @@ export function AppSidebar({ topSlot, searchSlot, headerClassName, headerStyle }
   const deletePin = useDeletePin();
   const reorderPins = useReorderPins();
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+
+  const { t } = useAppLocale();
+
+  const personalNav: { key: NavKey; label: string; icon: typeof Inbox }[] = [
+    { key: "inbox", label: t.layout.inbox, icon: Inbox },
+    { key: "myIssues", label: t.layout.myIssues, icon: CircleUser },
+  ];
+
+  const workspaceNav: { key: NavKey; label: string; icon: typeof Inbox }[] = [
+    { key: "issues", label: t.layout.issues, icon: ListTodo },
+    { key: "projects", label: t.layout.projects, icon: FolderKanban },
+    { key: "autopilots", label: t.layout.autopilot, icon: Zap },
+    { key: "agents", label: t.layout.agents, icon: Bot },
+  ];
+
+  const configureNav: { key: NavKey; label: string; icon: typeof Inbox }[] = [
+    { key: "runtimes", label: t.layout.runtimes, icon: Monitor },
+    { key: "skills", label: t.layout.skills, icon: BookOpenText },
+    { key: "settings", label: t.layout.settings, icon: Settings },
+  ];
 
   // Local presentational copy of pinnedItems for drop-animation stability.
   // Follows TQ at rest; frozen during a drag gesture so a mid-drag cache
@@ -477,7 +483,7 @@ export function AppSidebar({ topSlot, searchSlot, headerClassName, headerStyle }
                   <DropdownMenuSeparator />
                   <DropdownMenuGroup>
                     <DropdownMenuLabel className="text-xs text-muted-foreground">
-                      Workspaces
+                      {t.layout.workspaces}
                     </DropdownMenuLabel>
                     {workspaces.map((ws) => (
                       <DropdownMenuItem
@@ -499,7 +505,7 @@ export function AppSidebar({ topSlot, searchSlot, headerClassName, headerStyle }
                       }
                     >
                       <Plus className="h-3.5 w-3.5" />
-                      Create workspace
+                      {t.layout.createWorkspace}
                     </DropdownMenuItem>
                   </DropdownMenuGroup>
                   {myInvitations.length > 0 && (
@@ -507,7 +513,7 @@ export function AppSidebar({ topSlot, searchSlot, headerClassName, headerStyle }
                       <DropdownMenuSeparator />
                       <DropdownMenuGroup>
                         <DropdownMenuLabel className="text-xs text-muted-foreground">
-                          Pending invitations
+                          {t.layout.pendingInvitations}
                         </DropdownMenuLabel>
                         {myInvitations.map((inv) => (
                           <div key={inv.id} className="flex items-center gap-2 px-2 py-1.5">
@@ -522,7 +528,7 @@ export function AppSidebar({ topSlot, searchSlot, headerClassName, headerStyle }
                                 acceptInvitationMut.mutate(inv.id);
                               }}
                             >
-                              Join
+                              {t.layout.join}
                             </button>
                             <button
                               type="button"
@@ -533,7 +539,7 @@ export function AppSidebar({ topSlot, searchSlot, headerClassName, headerStyle }
                                 declineInvitationMut.mutate(inv.id);
                               }}
                             >
-                              Decline
+                              {t.layout.decline}
                             </button>
                           </div>
                         ))}
@@ -544,7 +550,7 @@ export function AppSidebar({ topSlot, searchSlot, headerClassName, headerStyle }
                   <DropdownMenuGroup>
                     <DropdownMenuItem variant="destructive" onClick={logout}>
                       <LogOut className="h-3.5 w-3.5" />
-                      Log out
+                      {t.layout.logOut}
                     </DropdownMenuItem>
                   </DropdownMenuGroup>
                 </DropdownMenuContent>
@@ -566,7 +572,7 @@ export function AppSidebar({ topSlot, searchSlot, headerClassName, headerStyle }
                   <SquarePen />
                   <DraftDot />
                 </span>
-                <span>New Issue</span>
+                <span>{t.layout.newIssue}</span>
                 <kbd className="pointer-events-none ml-auto inline-flex h-5 select-none items-center gap-0.5 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">C</kbd>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -590,7 +596,7 @@ export function AppSidebar({ topSlot, searchSlot, headerClassName, headerStyle }
                       >
                         <item.icon />
                         <span>{item.label}</span>
-                        {item.label === "Inbox" && unreadCount > 0 && (
+                        {item.key === "inbox" && unreadCount > 0 && (
                           <span className="ml-auto text-xs">
                             {unreadCount > 99 ? "99+" : unreadCount}
                           </span>
@@ -610,7 +616,7 @@ export function AppSidebar({ topSlot, searchSlot, headerClassName, headerStyle }
                   render={<CollapsibleTrigger />}
                   className="group/trigger cursor-pointer hover:bg-sidebar-accent/70 hover:text-sidebar-accent-foreground"
                 >
-                  <span>Pinned</span>
+                  <span>{t.layout.pinned}</span>
                   <ChevronRight className="!size-3 ml-1 stroke-[2.5] transition-transform duration-200 group-data-[panel-open]/trigger:rotate-90" />
                   <span className="ml-auto text-[10px] text-muted-foreground opacity-0 transition-opacity group-hover/pinned:opacity-100">{localPinned.length}</span>
                 </SidebarGroupLabel>
@@ -639,7 +645,7 @@ export function AppSidebar({ topSlot, searchSlot, headerClassName, headerStyle }
           )}
 
           <SidebarGroup>
-            <SidebarGroupLabel>Workspace</SidebarGroupLabel>
+            <SidebarGroupLabel>{t.layout.workspace}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu className="gap-0.5">
                 {workspaceNav.map((item) => {
@@ -663,7 +669,7 @@ export function AppSidebar({ topSlot, searchSlot, headerClassName, headerStyle }
           </SidebarGroup>
 
           <SidebarGroup>
-            <SidebarGroupLabel>Configure</SidebarGroupLabel>
+            <SidebarGroupLabel>{t.layout.configure}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu className="gap-0.5">
                 {configureNav.map((item) => {
@@ -678,7 +684,7 @@ export function AppSidebar({ topSlot, searchSlot, headerClassName, headerStyle }
                       >
                         <item.icon />
                         <span>{item.label}</span>
-                        {item.label === "Runtimes" && hasRuntimeUpdates && (
+                        {item.key === "runtimes" && hasRuntimeUpdates && (
                           <span className="ml-auto size-1.5 rounded-full bg-destructive" />
                         )}
                       </SidebarMenuButton>
@@ -691,11 +697,29 @@ export function AppSidebar({ topSlot, searchSlot, headerClassName, headerStyle }
         </SidebarContent>
 
         <SidebarFooter className="p-2">
-          <div className="flex justify-end">
+          <div className="flex items-center justify-between">
+            <LocaleSwitcher />
             <HelpLauncher />
           </div>
         </SidebarFooter>
         <SidebarRail />
       </Sidebar>
+  );
+}
+
+function LocaleSwitcher() {
+  const { locale, setLocale } = useAppLocale();
+
+  const next: Locale = locale === "en" ? "zh" : "en";
+
+  return (
+    <button
+      type="button"
+      onClick={() => setLocale(next)}
+      className="inline-flex h-7 items-center justify-center rounded-full px-2 text-xs font-medium text-muted-foreground transition-colors cursor-pointer hover:bg-accent hover:text-foreground"
+      title={locale === "en" ? "Switch to Chinese" : "Switch to English"}
+    >
+      {localeLabels[next]}
+    </button>
   );
 }

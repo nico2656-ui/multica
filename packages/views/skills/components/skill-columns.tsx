@@ -23,6 +23,7 @@ import {
   TooltipTrigger,
 } from "@multica/ui/components/ui/tooltip";
 import { readOrigin, totalFileCount } from "../lib/origin";
+import type { AppDict } from "@multica/i18n";
 
 // Per-row data assembled at the page level. The columns reach into
 // `row.original` and never pull their own queries.
@@ -57,24 +58,24 @@ const COL_WIDTHS = {
   chevron: 48,
 } as const;
 
-export function createSkillColumns(): ColumnDef<SkillRow>[] {
+export function createSkillColumns(t: AppDict): ColumnDef<SkillRow>[] {
   return [
     {
       id: "name",
-      header: "Name",
+      header: t.skills.name,
       size: COL_WIDTHS.name,
       meta: { grow: true },
       cell: ({ row }) => <SkillNameCell row={row.original} />,
     },
     {
       id: "usedBy",
-      header: "Used by",
+      header: t.skills.usedBy,
       size: COL_WIDTHS.usedBy,
       cell: ({ row }) => <AgentAssignees agents={row.original.agents} />,
     },
     {
       id: "source",
-      header: "Source · Added by",
+      header: t.skills.origin,
       size: COL_WIDTHS.source,
       meta: { grow: true },
       cell: ({ row }) => (

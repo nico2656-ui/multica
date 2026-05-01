@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Bot, Loader2, Square } from "lucide-react";
+import { useAppLocale } from "@multica/i18n";
 import { api } from "@multica/core/api";
 import { useWSEvent } from "@multica/core/realtime";
 import type { TaskMessagePayload } from "@multica/core/types/events";
@@ -216,6 +217,7 @@ interface SingleAgentLiveCardProps {
 }
 
 function SingleAgentLiveCard({ task, items, issueId, agentName }: SingleAgentLiveCardProps) {
+  const { t } = useAppLocale();
   const [elapsed, setElapsed] = useState("");
   const [cancelling, setCancelling] = useState(false);
 
@@ -253,7 +255,7 @@ function SingleAgentLiveCard({ task, items, issueId, agentName }: SingleAgentLiv
         )}
         <div className="flex items-center gap-1.5 text-xs min-w-0">
           <Loader2 className="h-3 w-3 animate-spin text-info shrink-0" />
-          <span className="font-medium text-foreground truncate">{agentName} is working</span>
+          <span className="font-medium text-foreground truncate">{agentName} {t.issues.agentLiveCard.working}</span>
           <span className="text-muted-foreground tabular-nums shrink-0">{elapsed}</span>
           {toolCount > 0 && (
             <span className="text-muted-foreground shrink-0">{toolCount} tools</span>
@@ -265,7 +267,7 @@ function SingleAgentLiveCard({ task, items, issueId, agentName }: SingleAgentLiv
             agentName={agentName}
             items={items}
             isLive
-            title="View transcript"
+            title={t.issues.agentLiveCard.transcript}
           />
           <button
             onClick={handleCancel}
@@ -274,7 +276,7 @@ function SingleAgentLiveCard({ task, items, issueId, agentName }: SingleAgentLiv
             title="Stop agent"
           >
             {cancelling ? <Loader2 className="h-3 w-3 animate-spin" /> : <Square className="h-3 w-3" />}
-            <span>Stop</span>
+            <span>{t.issues.agentLiveCard.cancel}</span>
           </button>
         </div>
       </div>

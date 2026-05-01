@@ -46,6 +46,7 @@ import type {
   AutopilotExecutionMode,
   AutopilotTrigger,
 } from "@multica/core/types";
+import { useAppLocale } from "@multica/i18n";
 import { TitleEditor, ContentEditor } from "../../editor";
 import { ActorAvatar } from "../../common/actor-avatar";
 import { AgentPicker } from "./pickers/agent-picker";
@@ -90,22 +91,22 @@ export type AutopilotDialogProps =
 // Static data
 // ---------------------------------------------------------------------------
 
-const FREQUENCY_OPTIONS: { value: TriggerFrequency; label: string }[] = [
-  { value: "hourly", label: "Every hour" },
-  { value: "daily", label: "Every day" },
-  { value: "weekdays", label: "Every weekday" },
-  { value: "weekly", label: "Every week" },
-  { value: "custom", label: "Custom cron" },
+const FREQUENCY_KEYS: { value: TriggerFrequency; labelKey: string }[] = [
+  { value: "hourly", labelKey: "everyHour" },
+  { value: "daily", labelKey: "everyDay" },
+  { value: "weekdays", labelKey: "everyWeekday" },
+  { value: "weekly", labelKey: "everyWeek" },
+  { value: "custom", labelKey: "customCron" },
 ];
 
-const DAY_OPTIONS: { value: number; label: string; short: string }[] = [
-  { value: 0, label: "Sunday", short: "Sun" },
-  { value: 1, label: "Monday", short: "Mon" },
-  { value: 2, label: "Tuesday", short: "Tue" },
-  { value: 3, label: "Wednesday", short: "Wed" },
-  { value: 4, label: "Thursday", short: "Thu" },
-  { value: 5, label: "Friday", short: "Fri" },
-  { value: 6, label: "Saturday", short: "Sat" },
+const DAY_KEYS: { value: number; labelKey: string; shortKey: string }[] = [
+  { value: 0, labelKey: "sunday", shortKey: "sun" },
+  { value: 1, labelKey: "monday", shortKey: "mon" },
+  { value: 2, labelKey: "tuesday", shortKey: "tue" },
+  { value: 3, labelKey: "wednesday", shortKey: "wed" },
+  { value: 4, labelKey: "thursday", shortKey: "thu" },
+  { value: 5, labelKey: "friday", shortKey: "fri" },
+  { value: 6, labelKey: "saturday", shortKey: "sat" },
 ];
 
 const TIMEZONE_OPTIONS = [
@@ -129,22 +130,22 @@ const TIMEZONE_OPTIONS = [
   "Pacific/Auckland",
 ];
 
-const OUTPUT_MODES: {
+const OUTPUT_MODE_CONFIG: {
   value: AutopilotExecutionMode;
-  label: string;
-  description: string;
+  labelKey: string;
+  descKey: string;
   Icon: typeof FilePlus2;
 }[] = [
   {
     value: "create_issue",
-    label: "Create issue",
-    description: "Each run creates a tracked issue",
+    labelKey: "createIssue",
+    descKey: "outputModeCreateDesc",
     Icon: FilePlus2,
   },
   {
     value: "run_only",
-    label: "Run only",
-    description: "Silent run, no issue created",
+    labelKey: "runOnly",
+    descKey: "outputModeRunDesc",
     Icon: Play,
   },
 ];
@@ -242,6 +243,7 @@ function useNowTicker(intervalMs = 30_000): Date {
 
 export function AutopilotDialog(props: AutopilotDialogProps) {
   const { open, onOpenChange } = props;
+  const { t } = useAppLocale();
   const workspaceName = useCurrentWorkspace()?.name;
   const wsId = useWorkspaceId();
   const { data: agents = [] } = useQuery(agentListOptions(wsId));
@@ -322,8 +324,8 @@ export function AutopilotDialog(props: AutopilotDialogProps) {
           scheduleOk = false;
         }
         onOpenChange(false);
-        if (scheduleOk) toast.success("Autopilot created");
-        else toast.error("Autopilot created, but schedule failed to save");
+        if (scheduleOk) toast.success(t.autopilots.autopilotCreated);
+        else toast.error(t.autopilots.scheduleFailed);
       } else {
         await updateAutopilot.mutateAsync({
           id: props.autopilotId,
@@ -356,11 +358,11 @@ export function AutopilotDialog(props: AutopilotDialogProps) {
           }
         }
         onOpenChange(false);
-        if (scheduleOk) toast.success("Autopilot updated");
-        else toast.error("Autopilot updated, but schedule failed to save");
+        if (scheduleOk) toast.success(t.autopilots.autopilotUpdated);
+        else toast.error(t.autopilots.scheduleFailed);
       }
     } catch {
-      toast.error(isCreate ? "Failed to create autopilot" : "Failed to update autopilot");
+      toast.error(isCreate ? t.autopilots.createFailed : t.autopilots.updateFailed);
     } finally {
       setSubmitting(false);
     }
@@ -382,7 +384,7 @@ export function AutopilotDialog(props: AutopilotDialogProps) {
         )}
       >
         <DialogTitle className="sr-only">
-          {isCreate ? "New Autopilot" : "Edit Autopilot"}
+          {isCreate ? t.autopilots.newAutopilot : t.autopilots.editAutopilot}
         </DialogTitle>
 
         {/* Header */}
@@ -393,11 +395,11 @@ export function AutopilotDialog(props: AutopilotDialogProps) {
                 <Rocket className="size-3" />
               </span>
               <span className="font-medium text-foreground">
-                {isCreate ? "New autopilot" : "Edit autopilot"}
+                {isCreate ? t.autopilots.newAutopilot : t.autopilots.editAutopilot}
               </span>
             </div>
             <span className="text-muted-foreground/60">·</span>
-            <span className="text-muted-foreground">A recurring AI task</span>
+            <span className="text-muted-foreground">{t.autopilots.recurringTask}</span>
             {workspaceName && (
               <>
                 <ChevronRight className="size-3 text-muted-foreground/40" />
@@ -417,7 +419,7 @@ export function AutopilotDialog(props: AutopilotDialogProps) {
                   </button>
                 }
               />
-              <TooltipContent side="bottom">{isExpanded ? "Collapse" : "Expand"}</TooltipContent>
+              <TooltipContent side="bottom">{isExpanded ? t.autopilots.collapse : t.autopilots.expand}</TooltipContent>
             </Tooltip>
             <Tooltip>
               <TooltipTrigger
@@ -430,7 +432,7 @@ export function AutopilotDialog(props: AutopilotDialogProps) {
                   </button>
                 }
               />
-              <TooltipContent side="bottom">Close</TooltipContent>
+              <TooltipContent side="bottom">{t.common.close}</TooltipContent>
             </Tooltip>
           </div>
         </div>
@@ -446,7 +448,7 @@ export function AutopilotDialog(props: AutopilotDialogProps) {
               <TitleEditor
                 autoFocus={isCreate}
                 defaultValue={initial.title ?? ""}
-                placeholder="Autopilot name"
+                placeholder={t.autopilots.autopilotName}
                 className="text-2xl font-semibold tracking-tight"
                 onChange={setTitle}
                 onSubmit={handleSubmit}
@@ -455,10 +457,10 @@ export function AutopilotDialog(props: AutopilotDialogProps) {
 
             <div className="px-6 pb-2 shrink-0 flex items-baseline gap-2">
               <span className="text-[11px] font-semibold tracking-[0.08em] text-muted-foreground uppercase">
-                Runbook
+                {t.autopilots.runbook}
               </span>
               <span className="text-xs text-muted-foreground/80">
-                Read by the agent on every run
+                {t.autopilots.runbookHint}
               </span>
             </div>
 
@@ -492,7 +494,7 @@ export function AutopilotDialog(props: AutopilotDialogProps) {
               disabled={schedulePillDisabled}
               disabledReason={
                 schedulePillDisabled
-                  ? "This autopilot has multiple schedules — edit them in the detail page."
+                  ? t.autopilots.multipleSchedules
                   : undefined
               }
             />
@@ -504,21 +506,21 @@ export function AutopilotDialog(props: AutopilotDialogProps) {
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground min-w-0">
             <Zap className="size-3.5 text-amber-500 shrink-0" />
             <span className="truncate">
-              Once saved, runs automatically until paused.
+              {t.autopilots.autoRunsHint}
             </span>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <Button size="sm" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              {t.common.cancel}
             </Button>
             <Button size="sm" onClick={handleSubmit} disabled={!canSubmit}>
               {submitting
                 ? isCreate
-                  ? "Creating..."
-                  : "Saving..."
+                  ? t.common.creating
+                  : t.common.saving
                 : isCreate
-                ? "Create autopilot"
-                : "Save"}
+                ? t.autopilots.createAutopilot
+                : t.common.save}
             </Button>
           </div>
         </div>
@@ -550,9 +552,10 @@ function AgentSection({
   selectedName?: string;
   selectedDescription?: string;
 }) {
+  const { t } = useAppLocale();
   return (
     <div>
-      <SectionLabel>Agent</SectionLabel>
+      <SectionLabel>{t.agents.agent}</SectionLabel>
       <AgentPicker
         agentId={selectedId || null}
         onChange={onChange}
@@ -579,7 +582,7 @@ function AgentSection({
             )}
             <span className="flex-1 min-w-0">
               <span className="block text-sm font-medium truncate">
-                {selectedName ?? "Select agent"}
+                {selectedName ?? t.autopilots.selectAgent}
               </span>
               {selectedDescription && (
                 <span className="block text-xs text-muted-foreground truncate">
@@ -602,11 +605,12 @@ function OutputModeSection({
   mode: AutopilotExecutionMode;
   onChange: (mode: AutopilotExecutionMode) => void;
 }) {
+  const { t } = useAppLocale();
   return (
     <div>
-      <SectionLabel>Output mode</SectionLabel>
+      <SectionLabel>{t.autopilots.outputMode}</SectionLabel>
       <div className="space-y-1.5">
-        {OUTPUT_MODES.map((o) => {
+        {OUTPUT_MODE_CONFIG.map((o) => {
           const selected = o.value === mode;
           return (
             <button
@@ -631,9 +635,9 @@ function OutputModeSection({
                 {selected && <Check className="size-2.5" strokeWidth={3} />}
               </span>
               <span className="flex-1 min-w-0">
-                <span className="block text-sm font-medium">{o.label}</span>
+                <span className="block text-sm font-medium">{(t.autopilots as Record<string, string | ((n: number) => string)>)[o.labelKey] as string}</span>
                 <span className="block text-xs text-muted-foreground">
-                  {o.description}
+                  {(t.autopilots as Record<string, string | ((n: number) => string)>)[o.descKey] as string}
                 </span>
               </span>
             </button>
@@ -655,6 +659,7 @@ function ScheduleSection({
   disabled?: boolean;
   disabledReason?: string;
 }) {
+  const { t } = useAppLocale();
   const now = useNowTicker();
   const next = useMemo(() => computeNextRun(config, now), [config, now]);
   const timezones = useMemo(() => {
@@ -667,7 +672,7 @@ function ScheduleSection({
 
   return (
     <div>
-      <SectionLabel>Schedule</SectionLabel>
+      <SectionLabel>{t.autopilots.schedule}</SectionLabel>
       <div
         className={cn(
           "space-y-2",
@@ -686,9 +691,9 @@ function ScheduleSection({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {FREQUENCY_OPTIONS.map((f) => (
+              {FREQUENCY_KEYS.map((f) => (
                 <SelectItem key={f.value} value={f.value}>
-                  {f.label}
+                  {(t.autopilots as Record<string, string | ((n: number) => string)>)[f.labelKey] as string}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -704,9 +709,9 @@ function ScheduleSection({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {DAY_OPTIONS.map((d) => (
+                {DAY_KEYS.map((d) => (
                   <SelectItem key={d.value} value={String(d.value)}>
-                    {d.label}
+                    {(t.autopilots as Record<string, string | ((n: number) => string)>)[d.labelKey] as string}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -752,7 +757,7 @@ function ScheduleSection({
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground pt-1">
             <Clock className="size-3 shrink-0" />
             <span className="truncate">
-              Next run:{" "}
+              {t.autopilots.nextRun}{" "}
               <span className="text-foreground">
                 {formatNextRunAbsolute(next, config.timezone)}
               </span>

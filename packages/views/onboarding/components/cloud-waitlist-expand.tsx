@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ArrowRight, Check, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useAppLocale } from "@multica/i18n";
 import { Button } from "@multica/ui/components/ui/button";
 import { Input } from "@multica/ui/components/ui/input";
 import { Label } from "@multica/ui/components/ui/label";
@@ -29,6 +30,7 @@ export function CloudWaitlistExpand({
   submitted: boolean;
   onSubmitted: () => void;
 }) {
+  const { t } = useAppLocale();
   const [email, setEmail] = useState("");
   const [reason, setReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -45,7 +47,7 @@ export function CloudWaitlistExpand({
     try {
       await joinCloudWaitlist(email.trim(), reason.trim());
       toast.success(
-        "You're on the list. We'll email when cloud runtimes are live.",
+          t.onboarding.cloudWaitlist,
       );
       onSubmitted();
     } catch (err) {
@@ -74,7 +76,7 @@ export function CloudWaitlistExpand({
           htmlFor="waitlist-email"
           className="text-xs font-medium text-muted-foreground"
         >
-          Email
+          {t.auth.email}
         </Label>
         <Input
           id="waitlist-email"
@@ -120,11 +122,11 @@ export function CloudWaitlistExpand({
           {submitted ? (
             <>
               <Check className="h-4 w-4" />
-              You&apos;re on the list
+              {t.onboarding.cloudWaitlist}
             </>
           ) : (
             <>
-              Join waitlist
+              {t.onboarding.cloudWaitlist}
               <ArrowRight className="h-4 w-4" />
             </>
           )}

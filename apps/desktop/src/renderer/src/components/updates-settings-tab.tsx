@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { AlertCircle, ArrowDownToLine, Check, Loader2 } from "lucide-react";
+import { useAppLocale } from "@multica/i18n";
 import { Button } from "@multica/ui/components/ui/button";
 
 type CheckState =
@@ -10,6 +11,7 @@ type CheckState =
   | { status: "error"; message: string };
 
 export function UpdatesSettingsTab() {
+  const { t } = useAppLocale();
   const [state, setState] = useState<CheckState>({ status: "idle" });
   const currentVersion = window.desktopAPI.appInfo.version;
 
@@ -29,7 +31,7 @@ export function UpdatesSettingsTab() {
 
   return (
     <div>
-      <h2 className="text-lg font-semibold">Updates</h2>
+      <h2 className="text-lg font-semibold">{t.desktop.updates}</h2>
       <p className="text-sm text-muted-foreground mt-1">
         The desktop app checks for new versions automatically once an hour and
         shortly after launch.
@@ -38,7 +40,7 @@ export function UpdatesSettingsTab() {
       <div className="mt-6 divide-y">
         <div className="flex items-center justify-between gap-6 py-4">
           <div className="min-w-0">
-            <p className="text-sm font-medium">Current version</p>
+            <p className="text-sm font-medium">{t.desktop.currentVersion}</p>
             <p className="text-sm text-muted-foreground mt-0.5 font-mono">
               v{currentVersion}
             </p>
@@ -47,7 +49,7 @@ export function UpdatesSettingsTab() {
 
         <div className="flex items-start justify-between gap-6 py-4">
           <div className="min-w-0">
-            <p className="text-sm font-medium">Check for updates</p>
+            <p className="text-sm font-medium">{t.desktop.checkForUpdates}</p>
             <p className="text-sm text-muted-foreground mt-0.5">
               Trigger a check now instead of waiting for the next automatic
               poll. Available updates appear as a notification in the corner.
@@ -55,14 +57,13 @@ export function UpdatesSettingsTab() {
             {state.status === "up-to-date" && (
               <p className="text-sm text-muted-foreground mt-2 inline-flex items-center gap-1.5">
                 <Check className="size-3.5 text-success" />
-                You&apos;re on the latest version.
+                {t.desktop.latestVersion}
               </p>
             )}
             {state.status === "available" && (
               <p className="text-sm text-muted-foreground mt-2 inline-flex items-center gap-1.5">
                 <ArrowDownToLine className="size-3.5 text-primary" />
-                v{state.latestVersion} is available — see the download prompt
-                in the corner.
+                {t.desktop.newVersionAvailable(state.latestVersion)}
               </p>
             )}
             {state.status === "error" && (
@@ -85,7 +86,7 @@ export function UpdatesSettingsTab() {
                   Checking…
                 </>
               ) : (
-                "Check now"
+                t.desktop.checkForUpdates
               )}
             </Button>
           </div>

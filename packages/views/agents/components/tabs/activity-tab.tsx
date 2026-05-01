@@ -40,6 +40,7 @@ import { TranscriptButton } from "../../../common/task-transcript";
 import { taskStatusConfig } from "../../config";
 import { failureReasonLabel } from "./task-failure";
 import { Sparkline } from "../sparkline";
+import { useAppLocale } from "@multica/i18n";
 
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
 // Recent work pagination: small initial cohort to keep the section
@@ -67,6 +68,7 @@ interface ActivityTabProps {
  * adds no extra fetches once the page is hydrated.
  */
 export function ActivityTab({ agent }: ActivityTabProps) {
+  const { t } = useAppLocale();
   const wsId = useWorkspaceId();
 
   const { data: snapshot = [] } = useQuery(agentTaskSnapshotOptions(wsId));
@@ -152,8 +154,8 @@ export function ActivityTab({ agent }: ActivityTabProps) {
 
   return (
     <div className="flex flex-col gap-4 p-6">
-      <NowSection tasks={activeTasks} issueMap={issueMap} agent={agent} />
-      <Last30dSection activity={activity} avgDurationMs={avgDurationMs} />
+      <NowSection tasks={activeTasks} issueMap={issueMap} agent={agent} t={t} />
+      <Last30dSection activity={activity} avgDurationMs={avgDurationMs} t={t} />
       <RecentWorkSection
         tasks={recentTasks}
         totalCount={recentTasksAll.length}
@@ -163,6 +165,7 @@ export function ActivityTab({ agent }: ActivityTabProps) {
         }
         issueMap={issueMap}
         agent={agent}
+        t={t}
       />
     </div>
   );
@@ -172,22 +175,24 @@ function NowSection({
   tasks,
   issueMap,
   agent,
+  t,
 }: {
   tasks: AgentTask[];
   issueMap: Map<string, Issue>;
   agent: Agent;
+  t: ReturnType<typeof useAppLocale>["t"];
 }) {
   return (
     <Section
-      title="Now"
+      title={t.agents.nowSection}
       subtitle={
         tasks.length === 0
-          ? "No active work"
+          ? t.agents.noActiveWork
           : `${tasks.length} active task${tasks.length === 1 ? "" : "s"}`
       }
     >
       {tasks.length === 0 ? (
-        <EmptyText>This agent isn&apos;t running anything right now.</EmptyText>
+        <EmptyText>{t.agents.notRunningNow}</EmptyText>
       ) : (
         <TaskList
           tasks={tasks}
@@ -203,9 +208,11 @@ function NowSection({
 function Last30dSection({
   activity,
   avgDurationMs,
+  t,
 }: {
   activity: AgentActivity | undefined;
   avgDurationMs: number;
+  t: ReturnType<typeof useAppLocale>["t"];
 }) {
   const summary = summarizeActivityWindow(activity, 30);
   const { totalRuns, totalFailed } = summary;
@@ -215,9 +222,9 @@ function Last30dSection({
       : 100;
 
   return (
-    <Section title="Last 30 days" subtitle="Performance">
+    <Section title={t.agents.last30Days} subtitle={t.agents.performance}>
       {totalRuns === 0 ? (
-        <EmptyText>No completions in the last 30 days.</EmptyText>
+        <EmptyText>{t.agents.noCompletions30d}</EmptyText>
       ) : (
         // Layout: number is the hero, sparkline is a garnish on the
         // right. Reversed from "chart hero + tiny number" because at
@@ -277,6 +284,7 @@ function RecentWorkSection({
   onShowMore,
   issueMap,
   agent,
+  t,
 }: {
   tasks: AgentTask[];
   totalCount: number;
@@ -284,22 +292,18 @@ function RecentWorkSection({
   onShowMore: () => void;
   issueMap: Map<string, Issue>;
   agent: Agent;
+  t: ReturnType<typeof useAppLocale>["t"];
 }) {
-  // Subtitle phrasing: "5 of 47" once we know the total is bigger than
-  // what we're rendering, otherwise "5 latest". Total comes from
-  // recentTasksAll (already filtered for chat / terminals) so it
-  // accurately reflects what would appear if the user kept clicking
-  // "Show more" — not the raw on-the-wire row count.
   const subtitle =
     tasks.length === 0
-      ? "Nothing finished yet"
+      ? t.agents.nothingFinished
       : totalCount > tasks.length
         ? `${tasks.length} of ${totalCount}`
         : `${tasks.length} latest`;
   return (
-    <Section title="Recent work" subtitle={subtitle}>
+    <Section title={t.agents.recentWork} subtitle={subtitle}>
       {tasks.length === 0 ? (
-        <EmptyText>This agent hasn&apos;t completed anything yet.</EmptyText>
+        <EmptyText>{t.agents.notCompletedYet}</EmptyText>
       ) : (
         <>
           <TaskList

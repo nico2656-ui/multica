@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Archive, ArrowRight, Bot, CheckCircle2 } from "lucide-react";
+import { useAppLocale } from "@multica/i18n";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -46,6 +47,7 @@ export function BacklogAgentHintContent({
   onDismissPermanently,
   onMoveToTodo,
 }: BacklogAgentHintContentProps) {
+  const { t } = useAppLocale();
   const [dontShowAgain, setDontShowAgain] = useState(false);
 
   const handleKeepInBacklog = () => {
@@ -67,11 +69,10 @@ export function BacklogAgentHintContent({
           </div>
           <div className="min-w-0">
             <h2 className="text-base font-semibold">
-              Agent is paused in Backlog
+              {t.issues.backlogAgentHint.title}
             </h2>
             <p className="mt-1 text-sm leading-5 text-muted-foreground">
-              This issue is parked, so the assigned agent will wait. Move it to
-              Todo when you want the agent to start.
+              {t.issues.backlogAgentHint.description}
             </p>
           </div>
         </div>
@@ -98,7 +99,7 @@ export function BacklogAgentHintContent({
               checked={dontShowAgain}
               onCheckedChange={(next) => setDontShowAgain(next === true)}
             />
-            <span className="truncate">Don&apos;t show this again</span>
+            <span className="truncate">{t.issues.backlogAgentHint.dontShowAgain}</span>
           </label>
           <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <Button
@@ -107,14 +108,14 @@ export function BacklogAgentHintContent({
               className="w-full sm:w-auto"
               onClick={handleKeepInBacklog}
             >
-              Keep in Backlog
+              {t.issues.backlogAgentHint.keepInBacklog}
             </Button>
             <Button
               type="button"
               className="w-full sm:w-auto"
               onClick={handleMoveToTodo}
             >
-              Move to Todo
+              {t.issues.backlogAgentHint.moveToTodo}
             </Button>
           </div>
         </div>

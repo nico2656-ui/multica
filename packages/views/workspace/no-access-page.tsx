@@ -1,5 +1,6 @@
 "use client";
 
+import { useAppLocale } from "@multica/i18n";
 import { Button } from "@multica/ui/components/ui/button";
 import { paths } from "@multica/core/paths";
 import { useNavigation } from "../navigation";
@@ -13,6 +14,7 @@ import { DragStrip } from "../platform";
  * either would let attackers enumerate workspace slugs.
  */
 export function NoAccessPage() {
+  const { t } = useAppLocale();
   const nav = useNavigation();
   const logout = useLogout();
   return (
@@ -21,18 +23,18 @@ export function NoAccessPage() {
       <div className="flex flex-1 flex-col items-center justify-center gap-6 px-6 pb-12 text-center">
         <div className="space-y-2">
           <h1 className="text-2xl font-semibold tracking-tight">
-            Workspace not available
+            {t.workspace.notAvailable}
           </h1>
           <p className="max-w-md text-muted-foreground">
-            This workspace doesn't exist or you don't have access.
+            {t.workspace.notAvailableDescription}
           </p>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row">
           <Button onClick={() => nav.push(paths.root())}>
-            Go to my workspaces
+            {t.common.back}
           </Button>
           <Button variant="outline" onClick={logout}>
-            Sign in as a different user
+            {t.auth.useDifferentAccount}
           </Button>
         </div>
       </div>

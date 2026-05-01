@@ -11,6 +11,7 @@ import {
 } from "@multica/core/projects";
 import { useWorkspaceId } from "@multica/core/hooks";
 import { useCurrentWorkspace } from "@multica/core/paths";
+import { useAppLocale } from "@multica/i18n";
 import type {
   GithubRepoResourceRef,
   ProjectResource,
@@ -30,6 +31,7 @@ import {
 export function ProjectResourcesSection({ projectId }: { projectId: string }) {
   const wsId = useWorkspaceId();
   const workspace = useCurrentWorkspace();
+  const { t } = useAppLocale();
   const [open, setOpen] = useState(true);
   const [addOpen, setAddOpen] = useState(false);
 
@@ -73,7 +75,7 @@ export function ProjectResourcesSection({ projectId }: { projectId: string }) {
         className={`flex w-full items-center gap-1 rounded-md px-2 py-1 text-xs font-medium transition-colors mb-2 hover:bg-accent/70 ${open ? "" : "text-muted-foreground hover:text-foreground"}`}
         onClick={() => setOpen(!open)}
       >
-        Resources
+        {t.projects.projectResources}
         <ChevronRight
           className={`!size-3 shrink-0 stroke-[2.5] text-muted-foreground transition-transform ${open ? "rotate-90" : ""}`}
         />
@@ -82,7 +84,7 @@ export function ProjectResourcesSection({ projectId }: { projectId: string }) {
         <div className="pl-2 space-y-1.5">
           {resources.length === 0 && (
             <p className="text-xs text-muted-foreground">
-              No resources attached.
+              {t.projects.noResources}
             </p>
           )}
           {resources.map((resource) => (
@@ -101,13 +103,13 @@ export function ProjectResourcesSection({ projectId }: { projectId: string }) {
                   className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
                 >
                   <Plus className="size-3" />
-                  Add resource
+                  {t.projects.addResources}
                 </Button>
               }
             />
             <PopoverContent align="start" className="w-72 p-2 space-y-2">
               <div className="text-xs font-medium text-muted-foreground">
-                Attach a GitHub repo
+                {t.projects.resourcesDescription}
               </div>
               {workspace?.repos && workspace.repos.length > 0 && (
                 <div className="space-y-1">

@@ -8,6 +8,7 @@ import {
   PenLine,
   Sparkles,
 } from "lucide-react";
+import { useAppLocale } from "@multica/i18n";
 import { Button } from "@multica/ui/components/ui/button";
 import { useScrollFade } from "@multica/ui/hooks/use-scroll-fade";
 import type {
@@ -41,6 +42,7 @@ export function StepQuestionnaire({
   onSubmit: (answers: QuestionnaireAnswers) => void | Promise<void>;
   onBack?: () => void;
 }) {
+  const { t } = useAppLocale();
   const [answers, setAnswers] = useState<QuestionnaireAnswers>(initial);
   const [submitting, setSubmitting] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
@@ -110,7 +112,7 @@ export function StepQuestionnaire({
               className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
-              Back
+              {t.common.back}
             </button>
           ) : (
             <span aria-hidden className="w-0" />
@@ -137,24 +139,24 @@ export function StepQuestionnaire({
               Before we start
             </div>
             <h1 className="text-balance font-serif text-[36px] font-medium leading-[1.1] tracking-tight text-foreground">
-              Three questions to get to know you.
+              {t.onboarding.questionnaireTitle}
             </h1>
 
             <div className="mt-10 flex flex-col gap-7">
               <QuestionBlock
                 num={1}
-                question="Who will use this workspace?"
-                ariaLabel="Who will use this workspace?"
+                 question={t.onboarding.questionnaireTeamSize}
+                 ariaLabel={t.onboarding.questionnaireTeamSize}
               >
                 <OptionCard
                   selected={answers.team_size === "solo"}
                   onSelect={() => setTeamSize("solo")}
-                  label="Just me"
+                   label={t.onboarding.teamSizes.solo}
                 />
                 <OptionCard
                   selected={answers.team_size === "team"}
                   onSelect={() => setTeamSize("team")}
-                  label="My team (2–10 people)"
+                   label={t.onboarding.teamSizes.small}
                 />
                 <OtherOptionCard
                   selected={answers.team_size === "other"}
@@ -169,18 +171,18 @@ export function StepQuestionnaire({
 
               <QuestionBlock
                 num={2}
-                question="What best describes you?"
-                ariaLabel="What best describes you?"
+                 question={t.onboarding.questionnaireRole}
+                 ariaLabel={t.onboarding.questionnaireRole}
               >
                 <OptionCard
                   selected={answers.role === "developer"}
                   onSelect={() => setRole("developer")}
-                  label="Software developer"
+                   label={t.onboarding.roles.engineer}
                 />
                 <OptionCard
                   selected={answers.role === "product_lead"}
                   onSelect={() => setRole("product_lead")}
-                  label="Product or project lead"
+                   label={t.onboarding.roles.pm}
                 />
                 <OptionCard
                   selected={answers.role === "writer"}
@@ -190,7 +192,7 @@ export function StepQuestionnaire({
                 <OptionCard
                   selected={answers.role === "founder"}
                   onSelect={() => setRole("founder")}
-                  label="Founder or operator"
+                   label={t.onboarding.roles.founder}
                 />
                 <OtherOptionCard
                   selected={answers.role === "other"}
@@ -205,8 +207,8 @@ export function StepQuestionnaire({
 
               <QuestionBlock
                 num={3}
-                question="What do you want to do with Multica?"
-                ariaLabel="What do you want to do with Multica?"
+                 question={t.onboarding.questionnaireWorkType}
+                 ariaLabel={t.onboarding.questionnaireWorkType}
               >
                 <OptionCard
                   selected={answers.use_case === "coding"}
@@ -256,7 +258,7 @@ export function StepQuestionnaire({
             onClick={submit}
           >
             {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-            Continue
+            {t.onboarding.continue}
             <ArrowRight className="h-4 w-4" />
           </Button>
         </footer>

@@ -22,6 +22,7 @@ import { useClearFiltersOnWorkspaceChange } from "@multica/core/issues/stores/vi
 import { useWorkspaceId } from "@multica/core/hooks";
 import { myIssueListOptions, childIssueProgressOptions, type MyIssuesFilter } from "@multica/core/issues/queries";
 import { useUpdateIssue } from "@multica/core/issues/mutations";
+import { useAppLocale } from "@multica/i18n";
 import { myIssuesViewStore } from "@multica/core/issues/stores/my-issues-view-store";
 import { PageHeader } from "../../layout/page-header";
 import { MyIssuesHeader } from "./my-issues-header";
@@ -30,6 +31,7 @@ export function MyIssuesPage() {
   const user = useAuthStore((s) => s.user);
   const workspace = useCurrentWorkspace();
   const wsId = useWorkspaceId();
+  const { t } = useAppLocale();
   const { data: agents = [] } = useQuery(agentListOptions(wsId));
 
   const viewMode = useStore(myIssuesViewStore, (s) => s.viewMode);
@@ -170,7 +172,7 @@ export function MyIssuesPage() {
           {workspace?.name ?? "Workspace"}
         </span>
         <ChevronRight className="h-3 w-3 text-muted-foreground" />
-        <span className="text-sm font-medium">My Issues</span>
+        <span className="text-sm font-medium">{t.layout.myIssues}</span>
       </PageHeader>
 
       {/* Header: scope tabs (left) + controls (right) */}

@@ -20,6 +20,7 @@ import {
   AlertDialogTitle,
 } from "@multica/ui/components/ui/alert-dialog";
 import { ActivityTab } from "./tabs/activity-tab";
+import { useAppLocale } from "@multica/i18n";
 import { InstructionsTab } from "./tabs/instructions-tab";
 import { SkillsTab } from "./tabs/skills-tab";
 import { EnvTab } from "./tabs/env-tab";
@@ -77,12 +78,22 @@ export function AgentOverviewPane({
   runtimes,
   onUpdate,
 }: AgentOverviewPaneProps) {
+  const { t } = useAppLocale();
   const [activeTab, setActiveTab] = useState<DetailTab>("activity");
   const [activeDirty, setActiveDirty] = useState(false);
-  // Holds the destination when a tab change is intercepted by the dirty
-  // guard. Null means no pending change. The AlertDialog reads non-null as
-  // "open".
   const [pendingTab, setPendingTab] = useState<DetailTab | null>(null);
+
+  const detailTabs: {
+    id: DetailTab;
+    label: string;
+    icon: typeof FileText;
+  }[] = [
+    { id: "activity", label: t.agents.activityTab, icon: Activity },
+    { id: "instructions", label: t.agents.instructionsTab, icon: FileText },
+    { id: "skills", label: t.agents.skillsSection, icon: BookOpenText },
+    { id: "env", label: t.agents.envTab, icon: KeyRound },
+    { id: "custom_args", label: t.agents.customArgsTab, icon: Terminal },
+  ];
 
   const runtime = agent.runtime_id
     ? runtimes.find((r) => r.id === agent.runtime_id) ?? null
@@ -174,19 +185,18 @@ export function AgentOverviewPane({
         >
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Discard unsaved changes?</AlertDialogTitle>
+              <AlertDialogTitle>{t.agents.discardChangesTitle}</AlertDialogTitle>
               <AlertDialogDescription>
-                You have unsaved changes in this tab. Leaving now will discard
-                them.
+                {t.agents.discardChangesDesc}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Keep editing</AlertDialogCancel>
+              <AlertDialogCancel>{t.agents.keepEditing}</AlertDialogCancel>
               <AlertDialogAction
                 variant="destructive"
                 onClick={commitTabChange}
               >
-                Discard changes
+                {t.agents.discardChanges}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

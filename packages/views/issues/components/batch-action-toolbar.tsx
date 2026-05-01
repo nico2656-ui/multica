@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useAppLocale } from "@multica/i18n";
 import { X, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@multica/ui/components/ui/button";
@@ -20,6 +21,7 @@ import { useBatchUpdateIssues, useBatchDeleteIssues } from "@multica/core/issues
 import { StatusPicker, PriorityPicker, AssigneePicker } from "./pickers";
 
 export function BatchActionToolbar() {
+  const { t } = useAppLocale();
   const selectedIds = useIssueSelectionStore((s) => s.selectedIds);
   const clear = useIssueSelectionStore((s) => s.clear);
   const count = selectedIds.size;
@@ -61,7 +63,7 @@ export function BatchActionToolbar() {
     <>
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 rounded-lg border bg-background px-2 py-1.5 shadow-lg">
         <div className="flex items-center gap-1.5 pl-1 pr-2 border-r mr-1">
-          <span className="text-sm font-medium">{count} selected</span>
+          <span className="text-sm font-medium">{t.issues.nSelected(count)}</span>
           <button
             type="button"
             onClick={clear}
@@ -78,7 +80,7 @@ export function BatchActionToolbar() {
           open={statusOpen}
           onOpenChange={setStatusOpen}
           triggerRender={<Button variant="ghost" size="sm" disabled={loading} />}
-          trigger="Status"
+          trigger={t.issues.status}
           align="center"
         />
 
@@ -89,7 +91,7 @@ export function BatchActionToolbar() {
           open={priorityOpen}
           onOpenChange={setPriorityOpen}
           triggerRender={<Button variant="ghost" size="sm" disabled={loading} />}
-          trigger="Priority"
+          trigger={t.issues.priority}
           align="center"
         />
 
@@ -101,7 +103,7 @@ export function BatchActionToolbar() {
           open={assigneeOpen}
           onOpenChange={setAssigneeOpen}
           triggerRender={<Button variant="ghost" size="sm" disabled={loading} />}
-          trigger="Assignee"
+          trigger={t.issues.assignee}
           align="center"
         />
 
@@ -114,7 +116,7 @@ export function BatchActionToolbar() {
           className="text-destructive hover:text-destructive"
         >
           <Trash2 className="size-3.5 mr-1" />
-          Delete
+          {t.common.delete}
         </Button>
       </div>
 
@@ -133,12 +135,12 @@ export function BatchActionToolbar() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t.common.cancel}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleBatchDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete
+              {loading ? t.common.deleting : t.common.delete}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

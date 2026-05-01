@@ -56,6 +56,7 @@ import {
   TooltipContent,
 } from "@multica/ui/components/ui/tooltip";
 import { EmojiPicker } from "@multica/ui/components/common/emoji-picker";
+import { useAppLocale } from "@multica/i18n";
 import { PageHeader } from "../../layout/page-header";
 import {
   AlertDialog,
@@ -192,6 +193,7 @@ export function ProjectDetail({ projectId }: { projectId: string }) {
   const wsId = useWorkspaceId();
   const wsPaths = useWorkspacePaths();
   const router = useNavigation();
+  const { t } = useAppLocale();
   const userId = useAuthStore((s) => s.user?.id);
   const workspace = useCurrentWorkspace();
   const workspaceName = workspace?.name;
@@ -310,7 +312,7 @@ export function ProjectDetail({ projectId }: { projectId: string }) {
         <TitleEditor
           key={`title-${projectId}`}
           defaultValue={project.title}
-          placeholder="Project title"
+          placeholder={t.projects.projectName}
           className="mt-2 w-full text-base font-semibold leading-snug tracking-tight"
           onBlur={(value) => {
             const trimmed = value.trim();
@@ -408,7 +410,7 @@ export function ProjectDetail({ projectId }: { projectId: string }) {
                   </button>
                   {filteredMembers.length > 0 && (
                     <>
-                      <div className="px-2 pt-2 pb-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">Members</div>
+                      <div className="px-2 pt-2 pb-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">{t.issues.members}</div>
                       {filteredMembers.map((m) => (
                         <button
                           type="button"
@@ -424,7 +426,7 @@ export function ProjectDetail({ projectId }: { projectId: string }) {
                   )}
                   {filteredAgents.length > 0 && (
                     <>
-                      <div className="px-2 pt-2 pb-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">Agents</div>
+                      <div className="px-2 pt-2 pb-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">{t.issues.agents}</div>
                       {filteredAgents.map((a) => (
                         <button
                           type="button"
@@ -439,7 +441,7 @@ export function ProjectDetail({ projectId }: { projectId: string }) {
                     </>
                   )}
                   {filteredMembers.length === 0 && filteredAgents.length === 0 && leadFilter && (
-                    <div className="px-2 py-3 text-center text-sm text-muted-foreground">No results</div>
+                    <div className="px-2 py-3 text-center text-sm text-muted-foreground">{t.common.noResults}</div>
                   )}
                 </div>
               </PopoverContent>
@@ -509,7 +511,7 @@ export function ProjectDetail({ projectId }: { projectId: string }) {
           <PageHeader className="gap-2 bg-background text-sm">
             <div className="flex flex-1 items-center gap-1.5 min-w-0">
               <AppLink href={wsPaths.projects()} className="text-muted-foreground hover:text-foreground transition-colors shrink-0">
-                {workspaceName ?? "Projects"}
+                {workspaceName ?? t.layout.projects}
               </AppLink>
               <ChevronRight className="h-3 w-3 text-muted-foreground/50 shrink-0" />
               <span className="truncate">{project.title}</span>
@@ -552,7 +554,7 @@ export function ProjectDetail({ projectId }: { projectId: string }) {
                     onClick={() => setDeleteDialogOpen(true)}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
-                    Delete project
+                    {t.projects.deleteProject}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -626,15 +628,15 @@ export function ProjectDetail({ projectId }: { projectId: string }) {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete project</AlertDialogTitle>
+            <AlertDialogTitle>{t.projects.deleteProject}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will delete the project. Issues will not be deleted but will be unlinked.
+              {t.projects.deleteProjectConfirm}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t.common.cancel}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-destructive text-white hover:bg-destructive/90">
-              Delete
+              {t.common.delete}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

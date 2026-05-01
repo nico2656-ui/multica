@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@multica/ui/components/ui/button";
 import { Input } from "@multica/ui/components/ui/input";
 import { PropertyPicker } from "../../../issues/components/pickers";
+import { useAppLocale } from "@multica/i18n";
 import { CHIP_CLASS } from "./chip";
 
 const MIN = 1;
@@ -19,6 +20,7 @@ export function ConcurrencyPicker({
   canEdit?: boolean;
   onChange: (next: number) => Promise<void> | void;
 }) {
+  const { t } = useAppLocale();
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState(String(value));
 
@@ -44,7 +46,7 @@ export function ConcurrencyPicker({
     if (n !== value) await onChange(n);
   };
 
-  const tooltip = `Concurrency · ${value} max concurrent tasks`;
+  const tooltip = `${t.agents.concurrency} · ${value} max concurrent tasks`;
 
   return (
     <PropertyPicker
@@ -81,7 +83,7 @@ export function ConcurrencyPicker({
             className="h-8 w-20 font-mono text-xs"
           />
           <Button size="sm" onClick={() => void commit()}>
-            Save
+            {t.common.save}
           </Button>
         </div>
       </div>

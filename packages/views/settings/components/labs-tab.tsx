@@ -11,8 +11,10 @@ import { useCurrentWorkspace } from "@multica/core/paths";
 import { workspaceKeys } from "@multica/core/workspace/queries";
 import { api } from "@multica/core/api";
 import type { Workspace } from "@multica/core/types";
+import { useAppLocale } from "@multica/i18n";
 
 export function LabsTab() {
+  const { t } = useAppLocale();
   const workspace = useCurrentWorkspace();
   const qc = useQueryClient();
   const [saving, setSaving] = useState(false);
@@ -35,7 +37,7 @@ export function LabsTab() {
       );
     } catch (e) {
       toast.error(
-        e instanceof Error ? e.message : "Failed to update setting",
+        e instanceof Error ? e.message : t.settings.labSettingUpdateFailed,
       );
     } finally {
       setSaving(false);
@@ -47,7 +49,7 @@ export function LabsTab() {
   return (
     <div className="space-y-4">
       <section className="space-y-4">
-        <h2 className="text-sm font-semibold">Git</h2>
+        <h2 className="text-sm font-semibold">{t.settings.git}</h2>
 
         <Card>
           <CardContent>
@@ -61,14 +63,10 @@ export function LabsTab() {
                     htmlFor="co-authored-by"
                     className="text-sm font-medium"
                   >
-                    Co-authored-by trailer
+                    {t.settings.coAuthoredBy}
                   </Label>
                   <p className="text-sm text-muted-foreground">
-                    Automatically add{" "}
-                    <code className="rounded bg-muted px-1 py-0.5 text-xs">
-                      Co-authored-by: multica-agent &lt;github@multica.ai&gt;
-                    </code>{" "}
-                    to commits made by agents.
+                    {t.settings.coAuthoredByDescription}
                   </p>
                 </div>
               </div>

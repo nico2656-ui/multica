@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ArrowRight, Download, Loader2 } from "lucide-react";
+import { useAppLocale } from "@multica/i18n";
 import { Button, buttonVariants } from "@multica/ui/components/ui/button";
 import { MulticaIcon } from "@multica/ui/components/common/multica-icon";
 import { captureDownloadIntent } from "@multica/core/analytics";
@@ -45,6 +46,7 @@ export function StepWelcome({
   onSkip?: () => void | Promise<void>;
   isWeb?: boolean;
 }) {
+  const { t } = useAppLocale();
   // Tracks which button is mid-flight so we can show a per-button
   // spinner and disable both while one is in progress.
   const [pending, setPending] = useState<"next" | "skip" | null>(null);
@@ -79,30 +81,22 @@ export function StepWelcome({
             <div className="flex items-center gap-2.5">
               <MulticaIcon className="size-5 text-foreground" noSpin />
               <span className="font-serif text-xl font-medium tracking-tight">
-                Welcome to Multica
+                {t.onboarding.welcome}
               </span>
             </div>
 
             <h1 className="text-balance font-serif text-5xl font-medium leading-[1.04] tracking-tight sm:text-6xl">
-              Your AI teammates,
-              <br />
-              in <em className="italic text-brand">one workspace.</em>
+              {t.onboarding.welcomeTitle}
             </h1>
 
             <div className="flex flex-col gap-4">
               <p className="text-lg leading-relaxed text-foreground/85">
-                Assign them work like you&apos;d assign a colleague — they
-                pick it up, update status, and comment when done.
+                {t.onboarding.welcomeDescription}
               </p>
               <p className="text-sm leading-relaxed text-muted-foreground">
-                {isWeb ? (
-                  <>
-                    Desktop bundles the runtime — nothing to install.
-                    Continue on web to connect your own CLI.
-                  </>
-                ) : (
-                  "By the end, a real agent will be replying to your first issue."
-                )}
+                {isWeb
+                  ? t.onboarding.downloadNudge
+                  : t.onboarding.welcomeDescription}
               </p>
             </div>
 
@@ -124,7 +118,7 @@ export function StepWelcome({
                     className={buttonVariants({ size: "lg" })}
                   >
                     <Download className="h-4 w-4" />
-                    Download Desktop
+                    {t.onboarding.downloadNudge}
                   </a>
                   <Button
                     size="lg"
@@ -135,7 +129,7 @@ export function StepWelcome({
                     {pending === "next" && (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     )}
-                    Continue on web
+                    {t.onboarding.continue}
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 </>
@@ -148,7 +142,7 @@ export function StepWelcome({
                   {pending === "next" && (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   )}
-                  Start exploring
+                  {t.onboarding.ctaText}
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               )}

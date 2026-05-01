@@ -3,6 +3,7 @@
 import { STATUS_CONFIG, PRIORITY_CONFIG } from "@multica/core/issues/config";
 import { useActorName } from "@multica/core/workspace/hooks";
 import { StatusIcon, PriorityIcon } from "../../issues/components";
+import { useAppLocale } from "@multica/i18n";
 import type { InboxItem, InboxItemType, IssueStatus, IssuePriority } from "@multica/core/types";
 import { getQuickCreateFailureDetail } from "./inbox-display";
 
@@ -37,6 +38,7 @@ function shortDate(dateStr: string): string {
 
 export function InboxDetailLabel({ item }: { item: InboxItem }) {
   const { getActorName } = useActorName();
+  const { t } = useAppLocale();
   const details = item.details ?? {};
 
   switch (item.type) {

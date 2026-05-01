@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, type ReactNode } from "react";
+import { useAppLocale } from "@multica/i18n";
 import { Button } from "@multica/ui/components/ui/button";
 import { Switch } from "@multica/ui/components/ui/switch";
 import { cn } from "@multica/ui/lib/utils";
@@ -57,6 +58,7 @@ function DiagnosticsRow({
 }
 
 export function DaemonSettingsTab() {
+  const { t } = useAppLocale();
   const [prefs, setPrefs] = useState<DaemonPrefs>({ autoStart: true, autoStop: false });
   const [cliInstalled, setCliInstalled] = useState<boolean | null>(null);
   const [saving, setSaving] = useState(false);
@@ -81,14 +83,14 @@ export function DaemonSettingsTab() {
 
   return (
     <div>
-      <h2 className="text-lg font-semibold">Daemon</h2>
+      <h2 className="text-lg font-semibold">{t.desktop.daemonSettings}</h2>
       <p className="text-sm text-muted-foreground mt-1">
         Configure how the local agent daemon behaves with the desktop app.
       </p>
 
       <div className="mt-6 divide-y">
         <SettingRow
-          label="Auto-start on launch"
+          label={t.desktop.autoStartDaemon}
           description="Automatically start the daemon when the app opens and you are logged in."
         >
           <Switch
@@ -99,7 +101,7 @@ export function DaemonSettingsTab() {
         </SettingRow>
 
         <SettingRow
-          label="Auto-stop on quit"
+          label={t.desktop.autoStopDaemon}
           description="Stop the daemon when the desktop app is closed. Disable this to keep the daemon running in the background."
         >
           <Switch
@@ -155,7 +157,13 @@ export function DaemonSettingsTab() {
                     DAEMON_STATE_COLORS[status.state],
                   )}
                 />
-                {DAEMON_STATE_LABELS[status.state]}
+                {status.state === "running"
+                  ? t.desktop.daemonRunning
+                  : status.state === "stopped"
+                    ? t.desktop.daemonStopped
+                    : status.state === "installing_cli"
+                      ? t.desktop.daemonInstalling
+                      : DAEMON_STATE_LABELS[status.state]}
               </span>
             }
           />

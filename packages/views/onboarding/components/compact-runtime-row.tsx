@@ -1,3 +1,4 @@
+import { useAppLocale } from "@multica/i18n";
 import { cn } from "@multica/ui/lib/utils";
 import type { AgentRuntime } from "@multica/core/types";
 import { ProviderLogo } from "../../runtimes/components/provider-logo";
@@ -18,6 +19,7 @@ export function CompactRuntimeRow({
   selected: boolean;
   onSelect: () => void;
 }) {
+  const { t } = useAppLocale();
   const online = runtime.status === "online";
   return (
     <div

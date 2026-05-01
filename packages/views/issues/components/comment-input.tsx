@@ -2,6 +2,7 @@
 
 import { useRef, useState, useCallback } from "react";
 import { ArrowUp, Loader2, Maximize2, Minimize2 } from "lucide-react";
+import { useAppLocale } from "@multica/i18n";
 import { Button } from "@multica/ui/components/ui/button";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@multica/ui/components/ui/tooltip";
 import { cn } from "@multica/ui/lib/utils";
@@ -16,6 +17,7 @@ interface CommentInputProps {
 }
 
 function CommentInput({ issueId, onSubmit }: CommentInputProps) {
+  const { t } = useAppLocale();
   const editorRef = useRef<ContentEditorRef>(null);
   const [isEmpty, setIsEmpty] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -64,7 +66,7 @@ function CommentInput({ issueId, onSubmit }: CommentInputProps) {
       <div className="flex-1 min-h-0 overflow-y-auto px-3 py-2">
         <ContentEditor
           ref={editorRef}
-          placeholder="Leave a comment..."
+          placeholder={t.issues.writeComment}
           onUpdate={(md) => setIsEmpty(!md.trim())}
           onSubmit={handleSubmit}
           onUploadFile={handleUpload}

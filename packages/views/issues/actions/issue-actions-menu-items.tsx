@@ -13,9 +13,9 @@ import {
   UserMinus,
 } from "lucide-react";
 import type { Issue } from "@multica/core/types";
+import { useAppLocale } from "@multica/i18n";
 import {
   ALL_STATUSES,
-  STATUS_CONFIG,
   PRIORITY_ORDER,
   PRIORITY_CONFIG,
 } from "@multica/core/issues/config";
@@ -82,6 +82,7 @@ export function IssueActionsMenuItems({
   primitives: P,
   onDeletedNavigateTo,
 }: IssueActionsMenuItemsProps) {
+  const { t } = useAppLocale();
   const {
     members,
     agents,
@@ -114,7 +115,7 @@ export function IssueActionsMenuItems({
           {ALL_STATUSES.map((s) => (
             <P.Item key={s} onClick={() => updateField({ status: s })}>
               <StatusIcon status={s} className="h-3.5 w-3.5" />
-              {STATUS_CONFIG[s].label}
+              {t.issues.statusLabels[s]}
               {issue.status === s && (
                 <span className="ml-auto text-xs text-muted-foreground">✓</span>
               )}
@@ -136,7 +137,7 @@ export function IssueActionsMenuItems({
                 className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-medium ${PRIORITY_CONFIG[p].badgeBg} ${PRIORITY_CONFIG[p].badgeText}`}
               >
                 <PriorityIcon priority={p} className="h-3 w-3" inheritColor />
-                {PRIORITY_CONFIG[p].label}
+                {t.issues.priorityLabels[p]}
               </span>
               {issue.priority === p && (
                 <span className="ml-auto text-xs text-muted-foreground">✓</span>
@@ -159,7 +160,7 @@ export function IssueActionsMenuItems({
             }
           >
             <UserMinus className="h-3.5 w-3.5 text-muted-foreground" />
-            Unassigned
+            {t.issues.noAssignee}
             {!issue.assignee_type && (
               <span className="ml-auto text-xs text-muted-foreground">✓</span>
             )}
@@ -200,23 +201,23 @@ export function IssueActionsMenuItems({
       <P.Sub>
         <P.SubTrigger>
           <Calendar className="h-3.5 w-3.5" />
-          Due date
+          {t.issues.dueDate}
         </P.SubTrigger>
         <P.SubContent>
           <P.Item onClick={() => updateField({ due_date: now().toISOString() })}>
-            Today
+            {t.issues.today}
           </P.Item>
           <P.Item onClick={() => updateField({ due_date: inDays(1) })}>
-            Tomorrow
+            {t.issues.tomorrow}
           </P.Item>
           <P.Item onClick={() => updateField({ due_date: inDays(7) })}>
-            Next week
+            {t.issues.nextWeek}
           </P.Item>
           {issue.due_date && (
             <>
               <P.Separator />
               <P.Item onClick={() => updateField({ due_date: null })}>
-                Clear date
+                {t.issues.clearDate}
               </P.Item>
             </>
           )}
@@ -231,11 +232,11 @@ export function IssueActionsMenuItems({
         ) : (
           <Pin className="h-3.5 w-3.5" />
         )}
-        {isPinned ? "Unpin from sidebar" : "Pin to sidebar"}
+        {isPinned ? t.issues.unpinFromSidebar : t.issues.pinToSidebar}
       </P.Item>
       <P.Item onClick={copyLink}>
         <Link2 className="h-3.5 w-3.5" />
-        Copy link
+        {t.issues.copyLink}
       </P.Item>
 
       <P.Separator />
@@ -245,20 +246,20 @@ export function IssueActionsMenuItems({
       <P.Sub>
         <P.SubTrigger>
           <MoreHorizontal className="h-3.5 w-3.5" />
-          More
+          {t.issues.more}
         </P.SubTrigger>
         <P.SubContent>
           <P.Item onClick={openCreateSubIssue}>
             <Plus className="h-3.5 w-3.5" />
-            Create sub-issue
+            {t.issues.createSubIssue}
           </P.Item>
           <P.Item onClick={openSetParent}>
             <ArrowUp className="h-3.5 w-3.5" />
-            Set parent issue...
+            {t.issues.setParentIssue}
           </P.Item>
           <P.Item onClick={openAddChild}>
             <ArrowDown className="h-3.5 w-3.5" />
-            Add sub-issue...
+            {t.issues.addChildIssue}
           </P.Item>
         </P.SubContent>
       </P.Sub>
@@ -270,7 +271,7 @@ export function IssueActionsMenuItems({
         onClick={() => openDeleteConfirm({ onDeletedNavigateTo })}
       >
         <Trash2 className="h-3.5 w-3.5" />
-        Delete issue
+        {t.issues.deleteIssue}
       </P.Item>
     </>
   );

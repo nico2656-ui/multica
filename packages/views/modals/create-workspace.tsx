@@ -1,6 +1,7 @@
 "use client";
 
 import { useNavigation } from "../navigation";
+import { useAppLocale } from "@multica/i18n";
 import { DragStrip } from "../platform";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@multica/ui/components/ui/button";
@@ -14,6 +15,7 @@ import { paths } from "@multica/core/paths";
 import { CreateWorkspaceForm } from "../workspace/create-workspace-form";
 
 export function CreateWorkspaceModal({ onClose }: { onClose: () => void }) {
+  const { t } = useAppLocale();
   const router = useNavigation();
 
   return (
@@ -50,11 +52,10 @@ export function CreateWorkspaceModal({ onClose }: { onClose: () => void }) {
           <div className="flex w-full max-w-md flex-col items-center gap-6">
             <div className="text-center">
               <DialogTitle className="text-2xl font-semibold">
-                Create a new workspace
+                {t.modals.createWorkspace}
               </DialogTitle>
               <DialogDescription className="mt-2">
-                Workspaces are shared environments where teams can work on
-                projects and issues.
+                {t.modals.createWorkspaceDescription}
               </DialogDescription>
             </div>
             <CreateWorkspaceForm

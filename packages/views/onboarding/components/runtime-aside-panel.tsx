@@ -1,3 +1,5 @@
+import { useAppLocale } from "@multica/i18n";
+
 /**
  * Shared right-rail aside for Step 3 (runtime).
  *
@@ -7,17 +9,15 @@
  * editorial shell's `<aside>` column.
  */
 export function RuntimeAsidePanel() {
+  const { t } = useAppLocale();
   return (
     <div className="flex flex-col gap-6">
       <section>
         <div className="mb-3 text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
-          What&apos;s a runtime?
+          {t.onboarding.runtimeTitle}
         </div>
         <p className="text-[14px] leading-[1.6] text-foreground/80">
-          A <strong className="font-medium text-foreground">runtime</strong>{" "}
-          is a small background process that runs on your machine. It
-          connects your workspace to AI coding tools like Claude Code or
-          Codex, and executes the tasks your agents pick up.
+          {t.onboarding.runtimeDescription}
         </p>
       </section>
 

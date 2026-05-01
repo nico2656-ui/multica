@@ -17,6 +17,7 @@ import {
 import { ActorAvatar } from "../../common/actor-avatar";
 import { availabilityConfig, workloadConfig } from "../presence";
 import { AgentRowActions } from "./agent-row-actions";
+import { useAppLocale } from "@multica/i18n";
 import { Sparkline } from "./sparkline";
 
 // Per-row data shape. We assemble agent + runtime + presence + activity +
@@ -70,17 +71,20 @@ export function createAgentColumns({
 }: {
   onDuplicate: (agent: Agent) => void;
 }): ColumnDef<AgentRow>[] {
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const { t } = useAppLocale();
+
   return [
     {
       id: "agent",
-      header: "Agent",
+      header: t.agents.agent,
       size: COL_WIDTHS.agent,
       meta: { grow: true },
-      cell: ({ row }) => <AgentNameCell row={row.original} />,
+      cell: ({ row }) => <AgentNameCell row={row.original} t={t} />,
     },
     {
       id: "status",
-      header: "Status",
+      header: t.agents.status,
       size: COL_WIDTHS.status,
       cell: ({ row }) => {
         if (row.original.agent.archived_at) {
@@ -91,7 +95,7 @@ export function createAgentColumns({
     },
     {
       id: "workload",
-      header: "Workload",
+      header: t.agents.workload,
       size: COL_WIDTHS.workload,
       cell: ({ row }) => {
         if (row.original.agent.archived_at) {
@@ -102,20 +106,20 @@ export function createAgentColumns({
     },
     {
       id: "runtime",
-      header: "Runtime",
+      header: t.agents.runtime,
       size: COL_WIDTHS.runtime,
       meta: { grow: true },
-      cell: ({ row }) => <RuntimeCell row={row.original} />,
+      cell: ({ row }) => <RuntimeCell row={row.original} t={t} />,
     },
     {
       id: "activity",
-      header: "Activity (7d)",
+      header: t.agents.activity7d,
       size: COL_WIDTHS.activity,
-      cell: ({ row }) => <ActivityCell row={row.original} />,
+      cell: ({ row }) => <ActivityCell row={row.original} t={t} />,
     },
     {
       id: "runs",
-      header: () => <div className="text-right">Runs</div>,
+      header: () => <div className="text-right">{t.agents.runs_}</div>,
       size: COL_WIDTHS.runs,
       cell: ({ row }) => (
         <div className="text-right font-mono text-xs tabular-nums text-muted-foreground">
@@ -133,8 +137,6 @@ export function createAgentColumns({
       cell: ({ row }) => (
         <div
           className="flex justify-end"
-          // The kebab dropdown owns its own click target. Stop the row
-          // click handler from firing as a side-effect.
           onClick={(e) => e.stopPropagation()}
         >
           <AgentRowActions
@@ -153,7 +155,7 @@ export function createAgentColumns({
 // Cell renderers
 // ---------------------------------------------------------------------------
 
-function AgentNameCell({ row }: { row: AgentRow }) {
+function AgentNameCell({ row, t }: { row: AgentRow; t: ReturnType<typeof useAppLocale>["t"] }) {
   const { agent, ownerIdToShow, isOwnedByMe } = row;
   const isArchived = !!agent.archived_at;
   const isPrivate = agent.visibility === "private";
@@ -184,13 +186,13 @@ function AgentNameCell({ row }: { row: AgentRow }) {
                 }
               />
               <TooltipContent>
-                {VISIBILITY_TOOLTIP.private}
+                {t.agents.visibilityTooltip.private ?? VISIBILITY_TOOLTIP.private}
               </TooltipContent>
             </Tooltip>
           )}
           {isOwnedByMe && !ownerIdToShow && (
             <span className="shrink-0 rounded bg-muted px-1 text-[10px] font-medium text-muted-foreground">
-              You
+              {t.agents.you}
             </span>
           )}
           {ownerIdToShow && (
@@ -202,7 +204,7 @@ function AgentNameCell({ row }: { row: AgentRow }) {
           )}
           {isArchived && (
             <span className="shrink-0 rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
-              Archived
+              {t.agents.archived}
             </span>
           )}
         </div>
@@ -213,7 +215,7 @@ function AgentNameCell({ row }: { row: AgentRow }) {
               : "italic text-muted-foreground/50"
           }`}
         >
-          {agent.description || "No description"}
+          {agent.description || t.agents.noDescription}
         </div>
       </div>
     </div>
@@ -294,11 +296,11 @@ function WorkloadCell({
   );
 }
 
-function RuntimeCell({ row }: { row: AgentRow }) {
+function RuntimeCell({ row, t }: { row: AgentRow; t: ReturnType<typeof useAppLocale>["t"] }) {
   const { agent, runtime } = row;
   const isCloud = agent.runtime_mode === "cloud";
   const RuntimeIcon = isCloud ? Cloud : Monitor;
-  const runtimeLabel = runtime?.name ?? (isCloud ? "Cloud" : "Local");
+  const runtimeLabel = runtime?.name ?? (isCloud ? t.agents.cloud : t.agents.local);
 
   return (
     <div className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
@@ -315,7 +317,7 @@ function RuntimeCell({ row }: { row: AgentRow }) {
   );
 }
 
-function ActivityCell({ row }: { row: AgentRow }) {
+function ActivityCell({ row, t }: { row: AgentRow; t: ReturnType<typeof useAppLocale>["t"] }) {
   const { agent, activity } = row;
   if (agent.archived_at) {
     return <span className="text-xs text-muted-foreground/50">—</span>;
@@ -339,25 +341,25 @@ function ActivityCell({ row }: { row: AgentRow }) {
         }
       />
       <TooltipContent>
-        <ActivityTooltipBody activity={activity} />
+        <ActivityTooltipBody activity={activity} t={t} />
       </TooltipContent>
     </Tooltip>
   );
 }
 
-function ActivityTooltipBody({ activity }: { activity: AgentActivity }) {
+function ActivityTooltipBody({ activity, t }: { activity: AgentActivity; t: ReturnType<typeof useAppLocale>["t"] }) {
   const summary = summarizeActivityWindow(activity, 7);
   const { totalRuns, totalFailed } = summary;
   const { daysSinceCreated } = activity;
 
   const isPartial = daysSinceCreated < 7;
   const headerText = isPartial
-    ? `Created ${daysSinceCreated === 0 ? "today" : `${daysSinceCreated} day${daysSinceCreated === 1 ? "" : "s"} ago`}`
-    : "Last 7 days";
+    ? `Created ${daysSinceCreated === 0 ? t.agents.createdToday : `${daysSinceCreated} day${daysSinceCreated === 1 ? "" : "s"} ago`}`
+    : t.agents.last7Days;
 
   let bodyText: string;
   if (totalRuns === 0) {
-    bodyText = "No activity";
+    bodyText = t.agents.noActivity;
   } else {
     const failedFragment =
       totalFailed > 0

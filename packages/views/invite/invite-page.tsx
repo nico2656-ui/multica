@@ -2,6 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAppLocale } from "@multica/i18n";
 import { api } from "@multica/core/api";
 import { useAuthStore } from "@multica/core/auth";
 import {
@@ -40,6 +41,7 @@ export interface InvitePageProps {
  * layered on by the desktop overlay; web just renders the page directly.
  */
 export function InvitePage({ invitationId, onBack }: InvitePageProps) {
+  const { t } = useAppLocale();
   const { push } = useNavigation();
   const qc = useQueryClient();
   const [accepting, setAccepting] = useState(false);
@@ -127,7 +129,7 @@ export function InvitePage({ invitationId, onBack }: InvitePageProps) {
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
               <X className="h-6 w-6 text-muted-foreground" />
             </div>
-            <h2 className="text-lg font-semibold">Invitation not found</h2>
+            <h2 className="text-lg font-semibold">{t.invitations.decline_}</h2>
             <p className="text-sm text-muted-foreground text-center">
               This invitation may have expired, been revoked, or doesn&apos;t belong to your account.
             </p>
@@ -148,7 +150,7 @@ export function InvitePage({ invitationId, onBack }: InvitePageProps) {
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
               <Check className="h-6 w-6 text-primary" />
             </div>
-            <h2 className="text-lg font-semibold">You joined {invitation.workspace_name}!</h2>
+            <h2 className="text-lg font-semibold">{t.invitations.acceptAndContinue} {invitation.workspace_name}!</h2>
             <p className="text-sm text-muted-foreground">Redirecting to workspace...</p>
           </CardContent>
         </Card>
@@ -161,7 +163,7 @@ export function InvitePage({ invitationId, onBack }: InvitePageProps) {
       <InviteShell onBack={onBack}>
         <Card className="w-full max-w-md">
           <CardContent className="flex flex-col items-center gap-4 py-12">
-            <h2 className="text-lg font-semibold">Invitation declined</h2>
+            <h2 className="text-lg font-semibold">{t.invitations.decline_}</h2>
             <p className="text-sm text-muted-foreground">You won&apos;t be added to this workspace.</p>
             <Button variant="outline" onClick={() => push(fallbackDest)}>
               Go to dashboard
@@ -195,7 +197,7 @@ export function InvitePage({ invitationId, onBack }: InvitePageProps) {
 
           {isAlreadyHandled ? (
             <div className="text-sm text-muted-foreground">
-              This invitation has already been {invitation.status}.
+                {t.invitations.alreadyInWorkspace}
             </div>
           ) : isExpired ? (
             <div className="text-sm text-muted-foreground">
@@ -209,14 +211,14 @@ export function InvitePage({ invitationId, onBack }: InvitePageProps) {
                 onClick={handleDecline}
                 disabled={accepting || declining}
               >
-                {declining ? "Declining..." : "Decline"}
+                {declining ? t.invitations.accepting : t.invitations.decline_}
               </Button>
               <Button
                 className="flex-1"
                 onClick={handleAccept}
                 disabled={accepting || declining}
               >
-                {accepting ? "Joining..." : "Accept & Join"}
+                {accepting ? t.invitations.accepting : t.invitations.acceptAndContinue}
               </Button>
             </div>
           )}
@@ -242,6 +244,7 @@ function InviteShell({
   onBack?: () => void;
   children: ReactNode;
 }) {
+  const { t } = useAppLocale();
   const logout = useLogout();
   return (
     <div className="relative flex min-h-svh flex-col bg-background">
@@ -254,7 +257,7 @@ function InviteShell({
           onClick={onBack}
         >
           <ArrowLeft />
-          Back
+          {t.common.back}
         </Button>
       )}
       <Button
@@ -264,7 +267,7 @@ function InviteShell({
         onClick={logout}
       >
         <LogOut />
-        Log out
+        {t.common.back}
       </Button>
       <div className="flex flex-1 flex-col items-center justify-center px-6 pb-12">
         {children}

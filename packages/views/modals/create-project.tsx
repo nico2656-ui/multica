@@ -52,6 +52,7 @@ import { ContentEditor, type ContentEditorRef, TitleEditor } from "../editor";
 import { PriorityIcon } from "../issues/components/priority-icon";
 import { ActorAvatar } from "../common/actor-avatar";
 import { useNavigation } from "../navigation";
+import { useAppLocale } from "@multica/i18n";
 
 function PillButton({
   children,
@@ -74,6 +75,7 @@ function PillButton({
 }
 
 export function CreateProjectModal({ onClose }: { onClose: () => void }) {
+  const { t } = useAppLocale();
   const router = useNavigation();
   const workspace = useCurrentWorkspace();
   const workspaceName = workspace?.name;
@@ -124,7 +126,7 @@ export function CreateProjectModal({ onClose }: { onClose: () => void }) {
     (a) => !a.archived_at && a.name.toLowerCase().includes(leadQuery),
   );
 
-  const leadLabel = leadType && leadId ? getActorName(leadType, leadId) : "Lead";
+  const leadLabel = leadType && leadId ? getActorName(leadType, leadId) : t.projects.lead;
 
   const createProject = useCreateProject();
 
@@ -151,10 +153,10 @@ export function CreateProjectModal({ onClose }: { onClose: () => void }) {
       });
       clearDraft();
       onClose();
-      toast.success("Project created");
+      toast.success(t.projects.projectCreated);
       router.push(wsPaths.projectDetail(project.id));
     } catch {
-      toast.error("Failed to create project");
+      toast.error(t.projects.createFailed);
     } finally {
       setSubmitting(false);
     }
@@ -186,13 +188,13 @@ export function CreateProjectModal({ onClose }: { onClose: () => void }) {
             : "!max-w-2xl !w-full !h-96 !-translate-y-1/2",
         )}
       >
-        <DialogTitle className="sr-only">New Project</DialogTitle>
+        <DialogTitle className="sr-only">{t.projects.newProject}</DialogTitle>
 
         <div className="flex items-center justify-between px-5 pt-3 pb-2 shrink-0">
           <div className="flex items-center gap-1.5 text-xs">
             <span className="text-muted-foreground">{workspaceName}</span>
             <ChevronRight className="size-3 text-muted-foreground/50" />
-            <span className="font-medium">New project</span>
+            <span className="font-medium">{t.projects.newProject}</span>
           </div>
           <div className="flex items-center gap-1">
             <Tooltip>
@@ -249,7 +251,7 @@ export function CreateProjectModal({ onClose }: { onClose: () => void }) {
           <TitleEditor
             autoFocus
             defaultValue={draft.title}
-            placeholder="Project title"
+            placeholder={t.projects.projectTitle}
             className="text-lg font-semibold"
             onChange={(v) => updateTitle(v)}
             onSubmit={handleSubmit}
@@ -328,7 +330,7 @@ export function CreateProjectModal({ onClose }: { onClose: () => void }) {
                       <span>{leadLabel}</span>
                     </>
                   ) : (
-                    <span className="text-muted-foreground">Lead</span>
+                    <span className="text-muted-foreground">{t.projects.lead}</span>
                   )}
                 </PillButton>
               }
@@ -339,8 +341,8 @@ export function CreateProjectModal({ onClose }: { onClose: () => void }) {
                   type="text"
                   value={leadFilter}
                   onChange={(e) => setLeadFilter(e.target.value)}
-                  placeholder="Assign lead..."
-                  className="w-full bg-transparent text-sm placeholder:text-muted-foreground outline-none"
+                   placeholder={t.projects.assignLead}
+                   className="w-full bg-transparent text-sm placeholder:text-muted-foreground outline-none"
                 />
               </div>
               <div className="p-1 max-h-60 overflow-y-auto">
@@ -353,12 +355,12 @@ export function CreateProjectModal({ onClose }: { onClose: () => void }) {
                   className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-accent transition-colors"
                 >
                   <UserMinus className="h-3.5 w-3.5 text-muted-foreground" />
-                  <span className="text-muted-foreground">No lead</span>
+                  <span className="text-muted-foreground">{t.projects.noLead}</span>
                 </button>
                 {filteredMembers.length > 0 && (
                   <>
                     <div className="px-2 pt-2 pb-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Members
+                      {t.projects.members}
                     </div>
                     {filteredMembers.map((m) => (
                       <button
@@ -379,7 +381,7 @@ export function CreateProjectModal({ onClose }: { onClose: () => void }) {
                 {filteredAgents.length > 0 && (
                   <>
                     <div className="px-2 pt-2 pb-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Agents
+                      {t.projects.agents}
                     </div>
                     {filteredAgents.map((a) => (
                       <button
@@ -401,7 +403,7 @@ export function CreateProjectModal({ onClose }: { onClose: () => void }) {
                   filteredAgents.length === 0 &&
                   leadFilter && (
                     <div className="px-2 py-3 text-center text-sm text-muted-foreground">
-                      No results
+                      {t.projects.noResults}
                     </div>
                   )}
               </div>
@@ -415,7 +417,7 @@ export function CreateProjectModal({ onClose }: { onClose: () => void }) {
                   <GithubIcon className="size-3" />
                   <span>
                     {selectedRepos.length === 0
-                      ? "Repos"
+                      ? t.projects.repos
                       : `${selectedRepos.length} repo${selectedRepos.length === 1 ? "" : "s"}`}
                   </span>
                 </PillButton>
@@ -423,7 +425,7 @@ export function CreateProjectModal({ onClose }: { onClose: () => void }) {
             />
             <PopoverContent align="start" className="w-72 p-2 space-y-2">
               <div className="text-xs font-medium text-muted-foreground">
-                Attach GitHub repos to this project
+                {t.projects.attachRepos}
               </div>
               {workspaceRepos.length > 0 ? (
                 <div className="space-y-1">
@@ -478,13 +480,13 @@ export function CreateProjectModal({ onClose }: { onClose: () => void }) {
                   className="h-6 px-2 text-xs"
                   disabled={!customRepoUrl.trim()}
                 >
-                  Add
+                  {t.projects.add}
                 </Button>
               </form>
               {selectedRepos.length > 0 && (
                 <div className="space-y-1 pt-1 border-t">
                   <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
-                    Selected
+                    {t.projects.selected}
                   </div>
                   {selectedRepos.map((url) => (
                     <div
@@ -514,7 +516,7 @@ export function CreateProjectModal({ onClose }: { onClose: () => void }) {
             disabled={!title.trim() || submitting}
             className="shrink-0"
           >
-            {submitting ? "Creating..." : "Create Project"}
+            {submitting ? "Creating..." : t.projects.createProject}
           </Button>
         </div>
       </DialogContent>

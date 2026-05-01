@@ -7,6 +7,7 @@ import { createSafeId } from "@multica/core/utils";
 import { Button } from "@multica/ui/components/ui/button";
 import { Input } from "@multica/ui/components/ui/input";
 import { toast } from "sonner";
+import { useAppLocale } from "@multica/i18n";
 
 interface ArgEntry {
   id: string;
@@ -37,6 +38,7 @@ export function CustomArgsTab({
   onSave: (updates: Partial<Agent>) => Promise<void>;
   onDirtyChange?: (dirty: boolean) => void;
 }) {
+  const { t } = useAppLocale();
   const [entries, setEntries] = useState<ArgEntry[]>(
     argsToEntries(agent.custom_args ?? []),
   );
@@ -68,9 +70,9 @@ export function CustomArgsTab({
     setSaving(true);
     try {
       await onSave({ custom_args: currentArgs });
-      toast.success("Custom arguments saved");
+      toast.success(t.agents.argsSaved);
     } catch {
-      toast.error("Failed to save custom arguments");
+      toast.error(t.agents.argsSaveFailed);
     } finally {
       setSaving(false);
     }
@@ -134,7 +136,7 @@ export function CustomArgsTab({
 
       <div className="flex items-center justify-end gap-3">
         {dirty && (
-          <span className="text-xs text-muted-foreground">Unsaved changes</span>
+          <span className="text-xs text-muted-foreground">{t.agents.unsavedChanges}</span>
         )}
         <Button onClick={handleSave} disabled={!dirty || saving} size="sm">
           {saving ? (
@@ -142,7 +144,7 @@ export function CustomArgsTab({
           ) : (
             <Save className="h-3.5 w-3.5" />
           )}
-          Save
+          {t.common.save}
         </Button>
       </div>
     </div>

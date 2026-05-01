@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, type ReactNode } from "react";
+import { useAppLocale } from "@multica/i18n";
 import { EyeOff, MoreHorizontal, Plus } from "lucide-react";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@multica/ui/components/ui/tooltip";
 import { useDroppable } from "@dnd-kit/core";
@@ -35,6 +36,7 @@ export function BoardColumn({
   totalCount?: number;
   footer?: ReactNode;
 }) {
+  const { t } = useAppLocale();
   const cfg = STATUS_CONFIG[status];
   const { setNodeRef, isOver } = useDroppable({ id: status });
   const viewStoreApi = useViewStoreApi();
@@ -67,7 +69,7 @@ export function BoardColumn({
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => viewStoreApi.getState().hideStatus(status)}>
                 <EyeOff className="size-3.5" />
-                Hide column
+                {t.issues.hideColumn}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -101,7 +103,7 @@ export function BoardColumn({
         </SortableContext>
         {issueIds.length === 0 && (
           <p className="py-8 text-center text-xs text-muted-foreground">
-            No issues
+            {t.issues.noIssues}
           </p>
         )}
         {footer}

@@ -1,6 +1,7 @@
 "use client";
 
 import { AlertCircle, WifiOff } from "lucide-react";
+import { useAppLocale } from "@multica/i18n";
 import type { AgentAvailability } from "@multica/core/agents";
 
 interface Props {
@@ -26,6 +27,7 @@ interface Props {
 // viewport size — without `max-w-4xl` the banner stretches wider than the
 // input on large screens and looks "loose".
 export function OfflineBanner({ agentName, availability }: Props) {
+  const { t } = useAppLocale();
   if (availability !== "offline" && availability !== "unstable") return null;
 
   const name = agentName?.trim() || "the agent";

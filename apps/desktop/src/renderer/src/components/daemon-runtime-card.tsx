@@ -12,6 +12,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useWorkspaceId } from "@multica/core/hooks";
 import { runtimeListOptions } from "@multica/core/runtimes";
 import { agentTaskSnapshotOptions } from "@multica/core/agents";
+import { useAppLocale } from "@multica/i18n";
 import { cn } from "@multica/ui/lib/utils";
 import { Button } from "@multica/ui/components/ui/button";
 import {
@@ -50,6 +51,7 @@ import {
  * the list. The `desktop-runtimes-page` wrapper is the only mount point.
  */
 export function DaemonRuntimeCard() {
+  const { t } = useAppLocale();
   const [status, setStatus] = useState<DaemonStatus>({ state: "stopped" });
   const [panelOpen, setPanelOpen] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
@@ -180,7 +182,13 @@ export function DaemonRuntimeCard() {
                   isRunning ? "text-foreground" : "text-muted-foreground",
                 )}
               >
-                {DAEMON_STATE_LABELS[status.state]}
+                {status.state === "running"
+                  ? t.desktop.daemonRunning
+                  : status.state === "stopped"
+                    ? t.desktop.daemonStopped
+                    : status.state === "installing_cli"
+                      ? t.desktop.daemonInstalling
+                      : DAEMON_STATE_LABELS[status.state]}
               </span>
               {isRunning && status.uptime && (
                 <span className="text-muted-foreground">
@@ -255,7 +263,13 @@ export function DaemonRuntimeCard() {
               {(isTransitioning || isInstalling) && (
                 <Button size="sm" variant="outline" disabled>
                   <Activity className="size-3.5 mr-1.5 animate-pulse" />
-                  {DAEMON_STATE_LABELS[status.state]}
+                {(status.state === "running"
+                  ? t.desktop.daemonRunning
+                  : status.state === "stopped"
+                    ? t.desktop.daemonStopped
+                    : status.state === "installing_cli"
+                      ? t.desktop.daemonInstalling
+                      : DAEMON_STATE_LABELS[status.state])}
                 </Button>
               )}
             </div>
@@ -296,6 +310,7 @@ function StopConfirmDialog({
   affectedCount: number;
   onConfirm: () => void;
 }) {
+  const { t } = useAppLocale();
   const plural = affectedCount === 1 ? "" : "s";
   const verb = affectedCount === 1 ? "is" : "are";
 
@@ -320,7 +335,7 @@ function StopConfirmDialog({
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t.common.cancel}
           </Button>
           <Button variant="destructive" onClick={onConfirm}>
             Stop daemon

@@ -19,12 +19,14 @@ import {
 import { useCreateFeedback, useFeedbackDraftStore } from "@multica/core/feedback";
 import { useCurrentWorkspace } from "@multica/core/paths";
 import { useFileUpload } from "@multica/core/hooks/use-file-upload";
+import { useAppLocale } from "@multica/i18n";
 import { api } from "@multica/core/api";
 import { captureFeedbackOpened } from "@multica/core/analytics";
 
 const MAX_MESSAGE_LEN = 10000;
 
 export function FeedbackModal({ onClose }: { onClose: () => void }) {
+  const { t } = useAppLocale();
   const workspace = useCurrentWorkspace();
   const draft = useFeedbackDraftStore((s) => s.draft);
   const setDraft = useFeedbackDraftStore((s) => s.setDraft);
@@ -64,7 +66,7 @@ export function FeedbackModal({ onClose }: { onClose: () => void }) {
     const latest = editorRef.current?.getMarkdown()?.trim() ?? "";
     if (!latest) return;
     if (latest.length > MAX_MESSAGE_LEN) {
-      toast.error("Message is too long");
+      toast.error(t.modals.messageTooLong);
       return;
     }
     try {
@@ -89,7 +91,7 @@ export function FeedbackModal({ onClose }: { onClose: () => void }) {
     <Dialog open onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="sm:max-w-2xl !h-[28rem] p-0 gap-0 flex flex-col overflow-hidden">
         <DialogHeader className="px-5 pt-4 pb-2 shrink-0">
-          <DialogTitle>Feedback</DialogTitle>
+          <DialogTitle>{t.modals.feedbackTitle}</DialogTitle>
           <DialogDescription>
             We&apos;d love to hear what&apos;s working, what isn&apos;t, or
             what you&apos;d like to see next.
@@ -118,7 +120,7 @@ export function FeedbackModal({ onClose }: { onClose: () => void }) {
 
         <div className="flex items-center justify-end px-4 py-3 border-t shrink-0">
           <Button size="sm" onClick={handleSubmit} disabled={!canSubmit}>
-            {mutation.isPending ? "Sending…" : "Send feedback"}
+            {mutation.isPending ? t.modals.sending : t.modals.sendFeedback}
             <kbd className="ml-1 inline-flex h-4 items-center gap-0.5 rounded border border-border/50 bg-background/30 px-1 font-mono text-[10px] leading-none">
               ⌘↵
             </kbd>

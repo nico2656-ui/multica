@@ -16,6 +16,7 @@ import {
   Zap,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useAppLocale } from "@multica/i18n";
 import { Button } from "@multica/ui/components/ui/button";
 import { Input } from "@multica/ui/components/ui/input";
 import { Label } from "@multica/ui/components/ui/label";
@@ -74,6 +75,7 @@ export function StepWorkspace({
   onCreated: (workspace: Workspace) => void | Promise<void>;
   onBack?: () => void;
 }) {
+  const { t } = useAppLocale();
   const mainRef = useRef<HTMLElement>(null);
   const fadeStyle = useScrollFade(mainRef);
 
@@ -130,10 +132,10 @@ export function StepWorkspace({
         onError: (error) => {
           if (isWorkspaceSlugConflict(error)) {
             setSlugServerError(WORKSPACE_SLUG_CONFLICT_ERROR);
-            toast.error("Choose a different workspace URL");
+            toast.error(t.workspace.slugValidationError);
             return;
           }
-          toast.error("Failed to create workspace");
+          toast.error(t.workspace.slugValidationError);
         },
       },
     );
@@ -153,31 +155,31 @@ export function StepWorkspace({
   let onContinue: () => void;
 
   if (existingActive && reusing) {
-    hint = `Opening ${reusing.name}.`;
-    continueLabel = `Open ${reusing.name}`;
+    hint = t.onboarding.continueWith(reusing.name);
+    continueLabel = t.onboarding.continueWith(reusing.name);
     continueDisabled = isCreating;
     onContinue = () => onCreated(reusing);
   } else if (creatingActive) {
     if (isCreating) {
-      hint = `Creating ${name.trim() || "your workspace"}…`;
-      continueLabel = "Creating…";
+      hint = `${t.common.creating} ${name.trim() || t.onboarding.workspaceName}…`;
+      continueLabel = t.common.creating;
       continueDisabled = true;
       onContinue = () => {};
     } else if (canCreate) {
-      hint = `Creating ${name.trim()}.`;
-      continueLabel = `Create ${name.trim()}`;
+      hint = `${t.common.creating} ${name.trim()}.`;
+      continueLabel = `${t.onboarding.createWorkspace} ${name.trim()}`;
       continueDisabled = false;
       onContinue = handleCreate;
     } else {
-      hint = "Name your workspace to create it.";
-      continueLabel = "Create workspace";
+      hint = t.onboarding.workspaceName;
+      continueLabel = t.onboarding.createWorkspace;
       continueDisabled = true;
       onContinue = () => {};
     }
   } else {
     // Resume path, nothing picked yet.
-    hint = "Pick your workspace or start a new one.";
-    continueLabel = "Continue";
+    hint = t.onboarding.workspaceTitle;
+    continueLabel = t.onboarding.continue;
     continueDisabled = true;
     onContinue = () => {};
   }
@@ -189,7 +191,7 @@ export function StepWorkspace({
           htmlFor="ws-name"
           className="text-xs font-medium text-muted-foreground"
         >
-          Workspace name
+          {t.onboarding.workspaceName}
         </Label>
         <Input
           id="ws-name"
@@ -197,7 +199,7 @@ export function StepWorkspace({
           type="text"
           value={name}
           onChange={(e) => handleNameChange(e.target.value)}
-          placeholder="Acme Inc, My Lab, Side Projects…"
+          placeholder={t.onboarding.workspaceName}
           onKeyDown={(e) => e.key === "Enter" && handleCreate()}
         />
       </div>
@@ -206,7 +208,7 @@ export function StepWorkspace({
           htmlFor="ws-slug"
           className="text-xs font-medium text-muted-foreground"
         >
-          URL
+          {t.onboarding.workspaceUrl}
         </Label>
         <div className="flex items-center rounded-md border bg-muted transition-colors focus-within:border-foreground">
           <span className="select-none pl-3 font-mono text-sm text-muted-foreground">
@@ -226,7 +228,7 @@ export function StepWorkspace({
       </div>
       <div className="flex flex-col gap-1.5">
         <div className="text-xs font-medium text-muted-foreground">
-          Issue prefix
+          {t.onboarding.issuePrefix}
         </div>
         <div className="text-sm leading-[1.55] text-muted-foreground">
           Issues will look like{" "}
@@ -253,7 +255,7 @@ export function StepWorkspace({
               className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground disabled:opacity-40"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
-              Back
+              {t.common.back}
             </button>
           ) : (
             <span aria-hidden className="w-0" />
@@ -270,17 +272,15 @@ export function StepWorkspace({
         >
           <div className="mx-auto w-full max-w-[620px] px-6 py-10 sm:px-10 md:px-14 lg:px-0 lg:py-14">
             <div className="mb-2 text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
-              {reusing ? "Pick up or start fresh" : "Your first workspace"}
+              {t.onboarding.workspaceTitle}
             </div>
             <h1 className="text-balance font-serif text-[36px] font-medium leading-[1.1] tracking-tight text-foreground">
               {reusing
-                ? `Continue with ${reusing.name}, or start another.`
-                : "Name your workspace."}
+                ? t.onboarding.continueWith(reusing.name)
+                : t.onboarding.workspaceTitle}
             </h1>
             <p className="mt-4 text-[15.5px] leading-[1.55] text-foreground/80">
-              {reusing
-                ? "Resume setup with the workspace you already have, or create a new one alongside it — you can belong to any number of workspaces."
-                : "A workspace is where your issues, agents, and projects live. You can invite teammates or spin up more workspaces later."}
+              {t.onboarding.workspaceDescription}
             </p>
 
             <div className="mt-10">
@@ -388,6 +388,7 @@ function CreateNewWorkspaceCard({
   onSelect: () => void;
   children: ReactNode;
 }) {
+  const { t } = useAppLocale();
   return (
     <div
       className={cn(
@@ -413,7 +414,7 @@ function CreateNewWorkspaceCard({
         </div>
         <div className="flex min-w-0 flex-1 flex-col">
           <div className="truncate text-[14.5px] font-medium text-foreground">
-            Create a new workspace
+            {t.onboarding.createWorkspace}
           </div>
           <div className="truncate text-xs text-muted-foreground">
             Start fresh — a separate space for a different side of your work.
@@ -427,10 +428,11 @@ function CreateNewWorkspaceCard({
 }
 
 function CreateWorkspaceSide() {
+  const { t } = useAppLocale();
   return (
     <div className="flex flex-col gap-6">
       <div className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
-        What lives inside a workspace
+        {t.onboarding.workspacePreview}
       </div>
 
       <WorkspacePreviewCard name="Your workspace" slug="workspace" />

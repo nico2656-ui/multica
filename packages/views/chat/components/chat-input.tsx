@@ -7,6 +7,7 @@ import { ContentEditor, type ContentEditorRef } from "../../editor";
 import { SubmitButton } from "@multica/ui/components/common/submit-button";
 import { useChatStore, DRAFT_NEW_SESSION } from "@multica/core/chat";
 import { createLogger } from "@multica/core/logger";
+import { useAppLocale } from "@multica/i18n";
 
 const logger = createLogger("chat.ui");
 
@@ -41,6 +42,7 @@ export function ChatInput({
   rightAdornment,
   topSlot,
 }: ChatInputProps) {
+  const { t } = useAppLocale();
   const editorRef = useRef<ContentEditorRef>(null);
   const activeSessionId = useChatStore((s) => s.activeSessionId);
   const selectedAgentId = useChatStore((s) => s.selectedAgentId);
@@ -89,7 +91,7 @@ export function ChatInput({
   };
 
   const placeholder = noAgent
-    ? "Create an agent to start chatting"
+    ? t.chat.noAgentBanner
     : disabled
       ? "This session is archived"
       : agentName

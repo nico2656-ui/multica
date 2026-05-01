@@ -8,41 +8,43 @@ import type { NotificationGroupKey, NotificationPreferences } from "@multica/cor
 import { Card, CardContent } from "@multica/ui/components/ui/card";
 import { Switch } from "@multica/ui/components/ui/switch";
 import { toast } from "sonner";
-
-const notificationGroups: {
-  key: NotificationGroupKey;
-  label: string;
-  description: string;
-}[] = [
-  {
-    key: "assignments",
-    label: "Assignments",
-    description: "When you are assigned or unassigned from an issue",
-  },
-  {
-    key: "status_changes",
-    label: "Status changes",
-    description: "When an issue you follow changes status (e.g. todo, in progress, done)",
-  },
-  {
-    key: "comments",
-    label: "Comments & Mentions",
-    description: "New comments on issues you follow, or when someone @mentions you",
-  },
-  {
-    key: "updates",
-    label: "Priority & Due date",
-    description: "When priority or due date changes on issues you follow",
-  },
-  {
-    key: "agent_activity",
-    label: "Agent activity",
-    description: "When an agent task completes or fails",
-  },
-];
+import { useAppLocale } from "@multica/i18n";
 
 export function NotificationsTab() {
   const wsId = useWorkspaceId();
+  const { t } = useAppLocale();
+
+  const notificationGroups: {
+    key: NotificationGroupKey;
+    label: string;
+    description: string;
+  }[] = [
+    {
+      key: "assignments",
+      label: t.settings.notificationGroups.assignments.label,
+      description: t.settings.notificationGroups.assignments.description,
+    },
+    {
+      key: "status_changes",
+      label: t.settings.notificationGroups.statusChanges.label,
+      description: t.settings.notificationGroups.statusChanges.description,
+    },
+    {
+      key: "comments",
+      label: t.settings.notificationGroups.comments.label,
+      description: t.settings.notificationGroups.comments.description,
+    },
+    {
+      key: "updates",
+      label: t.settings.notificationGroups.updates.label,
+      description: t.settings.notificationGroups.updates.description,
+    },
+    {
+      key: "agent_activity",
+      label: t.settings.notificationGroups.agentActivity.label,
+      description: t.settings.notificationGroups.agentActivity.description,
+    },
+  ];
   const { data } = useQuery(notificationPreferenceOptions(wsId));
   const mutation = useUpdateNotificationPreferences();
 
@@ -58,7 +60,7 @@ export function NotificationsTab() {
       delete updated[key];
     }
     mutation.mutate(updated, {
-      onError: () => toast.error("Failed to update notification settings"),
+      onError: () => toast.error(t.settings.notificationUpdateFailed),
     });
   };
 
@@ -66,11 +68,9 @@ export function NotificationsTab() {
     <div className="space-y-4">
       <section className="space-y-4">
         <div>
-          <h2 className="text-sm font-semibold">Inbox Notifications</h2>
+          <h2 className="text-sm font-semibold">{t.settings.inboxNotifications}</h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Control which events generate inbox notifications. Muted event types
-            are silently filtered — you can still see them by visiting the issue
-            directly.
+            {t.settings.inboxNotificationsDescription}
           </p>
         </div>
 

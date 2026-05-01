@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { toast } from "sonner";
+import { useAppLocale } from "@multica/i18n";
 import { Input } from "@multica/ui/components/ui/input";
 import { Label } from "@multica/ui/components/ui/label";
 import { Button } from "@multica/ui/components/ui/button";
@@ -21,6 +22,7 @@ export interface CreateWorkspaceFormProps {
 }
 
 export function CreateWorkspaceForm({ onSuccess }: CreateWorkspaceFormProps) {
+  const { t } = useAppLocale();
   const createWorkspace = useCreateWorkspace();
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
@@ -58,7 +60,7 @@ export function CreateWorkspaceForm({ onSuccess }: CreateWorkspaceFormProps) {
         onError: (error) => {
           if (isWorkspaceSlugConflict(error)) {
             setSlugServerError(WORKSPACE_SLUG_CONFLICT_ERROR);
-            toast.error("Choose a different workspace URL");
+            toast.error(t.workspace.slugValidationError);
             return;
           }
           toast.error("Failed to create workspace");
@@ -71,19 +73,19 @@ export function CreateWorkspaceForm({ onSuccess }: CreateWorkspaceFormProps) {
     <Card className="w-full">
       <CardContent className="space-y-4 pt-6">
         <div className="space-y-1.5">
-          <Label htmlFor="ws-name">Workspace Name</Label>
+          <Label htmlFor="ws-name">{t.workspace.workspaceName}</Label>
           <Input
             id="ws-name"
             autoFocus
             type="text"
             value={name}
             onChange={(e) => handleNameChange(e.target.value)}
-            placeholder="My Workspace"
+            placeholder={t.workspace.workspaceName}
             onKeyDown={(e) => e.key === "Enter" && handleCreate()}
           />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="ws-slug">Workspace URL</Label>
+          <Label htmlFor="ws-slug">{t.workspace.workspaceUrl}</Label>
           <div className="flex items-center gap-0 rounded-md border bg-background focus-within:ring-2 focus-within:ring-ring">
             <span className="pl-3 text-sm text-muted-foreground select-none">
               multica.ai/
@@ -108,7 +110,7 @@ export function CreateWorkspaceForm({ onSuccess }: CreateWorkspaceFormProps) {
           onClick={handleCreate}
           disabled={createWorkspace.isPending || !canSubmit}
         >
-          {createWorkspace.isPending ? "Creating..." : "Create workspace"}
+          {createWorkspace.isPending ? t.workspace.creating : t.workspace.createWorkspace}
         </Button>
       </CardContent>
     </Card>

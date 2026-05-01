@@ -36,6 +36,7 @@ import { Input } from "@multica/ui/components/ui/input";
 import { Label } from "@multica/ui/components/ui/label";
 import { Textarea } from "@multica/ui/components/ui/textarea";
 import { useScrollFade } from "@multica/ui/hooks/use-scroll-fade";
+import { useAppLocale } from "@multica/i18n";
 import { cn } from "@multica/ui/lib/utils";
 import { openExternal } from "../../platform";
 import { RuntimeLocalSkillImportPanel } from "./runtime-local-skill-import-panel";
@@ -66,6 +67,7 @@ function isNameConflictError(msg: string): boolean {
 // ---------------------------------------------------------------------------
 
 function MethodChooser({ onChoose }: { onChoose: (m: Method) => void }) {
+  const { t } = useAppLocale();
   const methods: {
     key: Method;
     icon: typeof Plus;
@@ -75,19 +77,19 @@ function MethodChooser({ onChoose }: { onChoose: (m: Method) => void }) {
     {
       key: "manual",
       icon: Plus,
-      title: "Create manually",
+      title: t.modals.createManually,
       desc: "Start from a blank SKILL.md and write your own instructions.",
     },
     {
       key: "url",
       icon: Download,
-      title: "Import from URL",
+      title: t.modals.importFromUrl,
       desc: "Pull a published skill from ClawHub or Skills.sh.",
     },
     {
       key: "runtime",
       icon: HardDrive,
-      title: "Copy from runtime",
+      title: t.modals.importFromRuntime,
       desc: "Promote a skill already installed on your local runtime.",
     },
   ];
@@ -125,6 +127,7 @@ function ManualForm({
   onCreated: (skill: Skill) => void;
   onCancel: () => void;
 }) {
+  const { t } = useAppLocale();
   const qc = useQueryClient();
   const wsId = useWorkspaceId();
   const [name, setName] = useState("");
@@ -165,7 +168,7 @@ function ManualForm({
             htmlFor="create-skill-name"
             className="text-xs text-muted-foreground"
           >
-            Name
+            {t.skills.name}
           </Label>
           <Input
             id="create-skill-name"
@@ -227,7 +230,7 @@ function ManualForm({
           onClick={onCancel}
           disabled={loading}
         >
-          Cancel
+          {t.common.cancel}
         </Button>
         <Button
           type="button"
@@ -238,10 +241,10 @@ function ManualForm({
           {loading ? (
             <>
               <Loader2 className="h-3 w-3 animate-spin" />
-              Creating…
+              {t.common.creating}
             </>
           ) : (
-            "Create skill"
+            t.common.create
           )}
         </Button>
       </div>
@@ -300,6 +303,7 @@ function UrlForm({
   onCreated: (skill: Skill) => void;
   onCancel: () => void;
 }) {
+  const { t } = useAppLocale();
   const qc = useQueryClient();
   const wsId = useWorkspaceId();
   const [url, setUrl] = useState("");
@@ -407,7 +411,7 @@ function UrlForm({
           onClick={onCancel}
           disabled={loading}
         >
-          Cancel
+          {t.common.cancel}
         </Button>
         <Button
           type="button"
@@ -436,21 +440,6 @@ function UrlForm({
 // Root dialog
 // ---------------------------------------------------------------------------
 
-const METHOD_TITLES: Record<Method, string> = {
-  chooser: "New skill",
-  manual: "Create manually",
-  url: "Import from URL",
-  runtime: "Copy from runtime",
-};
-
-const METHOD_DESCS: Record<Method, string> = {
-  chooser: "Choose how you want to add a skill to this workspace.",
-  manual: "Write a new SKILL.md from scratch.",
-  url: "Fetch a published skill by URL. Files are pulled server-side.",
-  runtime:
-    "Scan a local runtime and promote one of its on-disk skills into this workspace.",
-};
-
 export function CreateSkillDialog({
   onClose,
   onCreated,
@@ -458,7 +447,23 @@ export function CreateSkillDialog({
   onClose: () => void;
   onCreated?: (skill: Skill) => void;
 }) {
+  const { t } = useAppLocale();
   const [method, setMethod] = useState<Method>("chooser");
+
+  const methodTitles: Record<Method, string> = {
+    chooser: t.modals.createSkill,
+    manual: t.modals.createManually,
+    url: t.modals.importFromUrl,
+    runtime: t.modals.importFromRuntime,
+  };
+
+  const methodDescs: Record<Method, string> = {
+    chooser: t.modals.createSkillDescription,
+    manual: "Write a new SKILL.md from scratch.",
+    url: "Fetch a published skill by URL. Files are pulled server-side.",
+    runtime:
+      "Scan a local runtime and promote one of its on-disk skills into this workspace.",
+  };
 
   const handleCreated = (skill: Skill) => {
     onCreated?.(skill);
@@ -506,15 +511,15 @@ export function CreateSkillDialog({
                     </button>
                   }
                 />
-                <TooltipContent side="bottom">Back</TooltipContent>
+                <TooltipContent side="bottom">{t.common.back}</TooltipContent>
               </Tooltip>
             )}
             <div className="min-w-0">
               <DialogTitle className="truncate text-base font-medium">
-                {METHOD_TITLES[method]}
+                {methodTitles[method]}
               </DialogTitle>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                {METHOD_DESCS[method]}
+                {methodDescs[method]}
               </p>
             </div>
           </div>
@@ -531,7 +536,7 @@ export function CreateSkillDialog({
                 </button>
               }
             />
-            <TooltipContent side="bottom">Close</TooltipContent>
+            <TooltipContent side="bottom">{t.common.close}</TooltipContent>
           </Tooltip>
         </div>
 

@@ -40,23 +40,12 @@ import { canEditSkill } from "../hooks/use-can-edit-skill";
 import { readOrigin } from "../lib/origin";
 import { CreateSkillDialog } from "./create-skill-dialog";
 import { type SkillRow, createSkillColumns } from "./skill-columns";
+import { useAppLocale } from "@multica/i18n";
 
 type FilterKey = "all" | "used" | "unused" | "mine";
 
 // ---------------------------------------------------------------------------
-// Scope tab — matches Issues/MyIssues header pattern
-// ---------------------------------------------------------------------------
-
-const SCOPES: { value: FilterKey; label: string; description: string }[] = [
-  { value: "all", label: "All", description: "All skills in this workspace" },
-  { value: "used", label: "In use", description: "Skills assigned to at least one agent" },
-  { value: "unused", label: "Unused", description: "Skills not assigned to any agent" },
-  { value: "mine", label: "Created by me", description: "Skills you created" },
-];
-
-// ---------------------------------------------------------------------------
-// Page header bar — uses shared PageHeader so the mobile sidebar trigger and
-// h-12 chrome stay consistent with every other dashboard list page.
+// Page header bar
 // ---------------------------------------------------------------------------
 
 function PageHeaderBar({
@@ -66,11 +55,12 @@ function PageHeaderBar({
   totalCount: number;
   onCreate: () => void;
 }) {
+  const { t } = useAppLocale();
   return (
     <PageHeader className="justify-between px-5">
       <div className="flex items-center gap-2">
         <BookOpen className="h-4 w-4 text-muted-foreground" />
-        <h1 className="text-sm font-medium">Skills</h1>
+        <h1 className="text-sm font-medium">{t.skills.pageTitle}</h1>
         {totalCount > 0 && (
           <span className="font-mono text-xs tabular-nums text-muted-foreground/70">
             {totalCount}
@@ -92,7 +82,7 @@ function PageHeaderBar({
       </div>
       <Button type="button" size="sm" onClick={onCreate}>
         <Plus className="h-3 w-3" />
-        New skill
+        {t.skills.newSkill}
       </Button>
     </PageHeader>
   );
@@ -115,6 +105,7 @@ function CardToolbar({
   filter: FilterKey;
   setFilter: (v: FilterKey) => void;
 }) {
+  const { t } = useAppLocale();
   return (
     <div className="flex h-12 shrink-0 items-center gap-2 border-b px-4">
       <div className="relative">
@@ -122,11 +113,16 @@ function CardToolbar({
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search skills…"
+          placeholder={t.skills.searchSkills}
           className="h-8 w-64 pl-8 text-sm"
         />
       </div>
-      {SCOPES.map((s) => (
+      {([
+        { value: "all" as FilterKey, label: t.skills.all, description: "All skills in this workspace" },
+        { value: "used" as FilterKey, label: t.skills.inUse, description: "Skills assigned to at least one agent" },
+        { value: "unused" as FilterKey, label: t.skills.unused, description: "Skills not assigned to any agent" },
+        { value: "mine" as FilterKey, label: t.skills.createdByMe, description: "Skills you created" },
+      ]).map((s) => (
         <Tooltip key={s.value}>
           <TooltipTrigger
             render={
@@ -156,19 +152,20 @@ function CardToolbar({
 // ---------------------------------------------------------------------------
 
 function EmptyState({ onCreate }: { onCreate: () => void }) {
+  const { t } = useAppLocale();
   return (
     <div className="flex flex-1 flex-col items-center justify-center px-6 py-16 text-center">
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
         <BookOpen className="h-6 w-6 text-muted-foreground" />
       </div>
-      <h2 className="mt-4 text-base font-semibold">No skills yet</h2>
+      <h2 className="mt-4 text-base font-semibold">{t.skills.noSkillsYet}</h2>
       <p className="mt-1 max-w-md text-sm text-muted-foreground">
         Create your first skill, import one from a URL, or copy one from a
         connected runtime — and every agent in the workspace can use it.
       </p>
       <Button type="button" onClick={onCreate} size="sm" className="mt-5">
         <Plus className="h-3 w-3" />
-        New skill
+        {t.skills.newSkill}
       </Button>
     </div>
   );
@@ -179,6 +176,7 @@ function EmptyState({ onCreate }: { onCreate: () => void }) {
 // ---------------------------------------------------------------------------
 
 export default function SkillsPage() {
+  const { t } = useAppLocale();
   const wsId = useWorkspaceId();
   const paths = useWorkspacePaths();
   const navigation = useNavigation();
@@ -282,7 +280,7 @@ export default function SkillsPage() {
     myRole,
   ]);
 
-  const columns = useMemo(() => createSkillColumns(), []);
+  const columns = useMemo(() => createSkillColumns(t), [t]);
 
   const table = useReactTable({
     data: skillRows,
@@ -408,7 +406,7 @@ export default function SkillsPage() {
             {filtered.length === 0 ? (
               <div className="flex flex-1 flex-col items-center justify-center gap-2 px-4 py-16 text-center text-muted-foreground">
                 <Search className="h-8 w-8 text-muted-foreground/40" />
-                <p className="text-sm">No matches</p>
+                <p className="text-sm">{t.common.noResults}</p>
                 <p className="max-w-xs text-xs">
                   {search
                     ? `No skills match "${search}"${filter !== "all" ? " in this filter" : ""}.`

@@ -1,5 +1,6 @@
 "use client";
 
+import { useAppLocale } from "@multica/i18n";
 import {
   ONBOARDING_STEP_ORDER,
   type OnboardingStep,
@@ -30,6 +31,7 @@ import { cn } from "@multica/ui/lib/utils";
  * mapping from local UI step to the canonical `OnboardingStep`.
  */
 export function StepHeader({ currentStep }: { currentStep: OnboardingStep }) {
+  const { t } = useAppLocale();
   const total = ONBOARDING_STEP_ORDER.length;
   const currentIndex = ONBOARDING_STEP_ORDER.indexOf(currentStep);
   // Defensive: unknown step → render a disabled-looking header rather
@@ -43,7 +45,7 @@ export function StepHeader({ currentStep }: { currentStep: OnboardingStep }) {
       aria-valuemin={1}
       aria-valuemax={total}
       aria-valuenow={safeIndex + 1}
-      aria-label={`Step ${safeIndex + 1} of ${total}`}
+      aria-label={t.onboarding.stepProgress(safeIndex + 1, total)}
       className="flex w-full items-center justify-between py-2"
     >
       <div className="flex items-center gap-2">
@@ -65,7 +67,7 @@ export function StepHeader({ currentStep }: { currentStep: OnboardingStep }) {
         })}
       </div>
       <span className="text-xs font-medium text-muted-foreground">
-        Step {safeIndex + 1} of {total}
+        {t.onboarding.stepProgress(safeIndex + 1, total)}
       </span>
     </div>
   );

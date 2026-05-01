@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@multica/ui/components/ui/dropdown-menu";
+import { useAppLocale } from "@multica/i18n";
 import { ProjectIcon } from "./project-icon";
 
 export function ProjectPicker({
@@ -26,6 +27,7 @@ export function ProjectPicker({
   align?: "start" | "center" | "end";
 }) {
   const wsId = useWorkspaceId();
+  const { t } = useAppLocale();
   const { data: projects = [] } = useQuery(projectListOptions(wsId));
   const current = projects.find((p) => p.id === projectId);
 
@@ -58,7 +60,7 @@ export function ProjectPicker({
           </DropdownMenuItem>
         )}
         {projects.length === 0 && (
-          <div className="px-2 py-1.5 text-xs text-muted-foreground">No projects yet</div>
+          <div className="px-2 py-1.5 text-xs text-muted-foreground">{t.projects.noProjectsYet}</div>
         )}
       </DropdownMenuContent>
     </DropdownMenu>

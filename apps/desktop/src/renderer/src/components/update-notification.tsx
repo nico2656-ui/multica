@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { ArrowDownToLine, RefreshCw, X } from "lucide-react";
+import { useAppLocale } from "@multica/i18n";
 
 type UpdateState =
   | { status: "idle" }
@@ -8,6 +9,7 @@ type UpdateState =
   | { status: "ready" };
 
 export function UpdateNotification() {
+  const { t } = useAppLocale();
   const [state, setState] = useState<UpdateState>({ status: "idle" });
   const [dismissed, setDismissed] = useState(false);
 
@@ -68,7 +70,7 @@ export function UpdateNotification() {
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium">New version available</p>
             <p className="text-xs text-muted-foreground mt-0.5">
-              v{state.version} is ready to download
+              {t.desktop.newVersionAvailable(state.version)}
             </p>
             <button
               onClick={handleDownload}
@@ -86,7 +88,7 @@ export function UpdateNotification() {
             <ArrowDownToLine className="size-4 text-primary animate-pulse" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium">Downloading update...</p>
+            <p className="text-sm font-medium">{t.desktop.downloadingUpdate}</p>
             <div className="mt-2 h-1.5 w-full rounded-full bg-muted overflow-hidden">
               <div
                 className="h-full rounded-full bg-primary transition-all duration-300"
@@ -106,9 +108,9 @@ export function UpdateNotification() {
             <RefreshCw className="size-4 text-success" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium">Update ready</p>
+            <p className="text-sm font-medium">{t.desktop.updateReady}</p>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Restart to apply the update
+              {t.desktop.restartToApply}
             </p>
             <div className="mt-2 flex items-center gap-1.5">
               {/* Secondary "See changes" — gives the user a reason to
@@ -120,13 +122,13 @@ export function UpdateNotification() {
                 onClick={() => window.desktopAPI.openExternal("https://multica.ai/changelog")}
                 className="inline-flex items-center rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground hover:bg-accent transition-colors"
               >
-                See changes
+                {t.desktop.seeChanges}
               </button>
               <button
                 onClick={handleInstall}
                 className="inline-flex items-center rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
               >
-                Restart now
+                {t.desktop.restartNow}
               </button>
             </div>
           </div>

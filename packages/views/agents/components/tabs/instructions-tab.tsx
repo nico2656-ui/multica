@@ -5,6 +5,7 @@ import { Loader2, Save } from "lucide-react";
 import type { Agent } from "@multica/core/types";
 import { Button } from "@multica/ui/components/ui/button";
 import { ContentEditor } from "../../../editor/content-editor";
+import { useAppLocale } from "@multica/i18n";
 
 const INSTRUCTIONS_PLACEHOLDER = `Define this agent's role, expertise, and working style.
 
@@ -29,6 +30,7 @@ export function InstructionsTab({
   onSave: (instructions: string) => Promise<void>;
   onDirtyChange?: (dirty: boolean) => void;
 }) {
+  const { t } = useAppLocale();
   const [value, setValue] = useState(agent.instructions ?? "");
   const [saving, setSaving] = useState(false);
   const isDirty = value !== (agent.instructions ?? "");
@@ -92,7 +94,7 @@ export function InstructionsTab({
 
       <div className="flex items-center justify-end gap-3">
         {isDirty && (
-          <span className="text-xs text-muted-foreground">Unsaved changes</span>
+          <span className="text-xs text-muted-foreground">{t.agents.unsavedChanges}</span>
         )}
         <Button
           size="sm"
@@ -104,7 +106,7 @@ export function InstructionsTab({
           ) : (
             <Save className="h-3.5 w-3.5" />
           )}
-          Save
+          {t.common.save}
         </Button>
       </div>
     </div>

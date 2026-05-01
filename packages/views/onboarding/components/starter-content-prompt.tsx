@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAppLocale } from "@multica/i18n";
 import { api } from "@multica/core/api";
 import { useAuthStore } from "@multica/core/auth";
 import { useNavigation } from "@multica/views/navigation";
@@ -43,6 +44,7 @@ import { buildImportPayload } from "../utils/starter-content-templates";
  * no client-side cache timing, no stale decisions, no Unknown bugs.
  */
 export function StarterContentPrompt() {
+  const { t } = useAppLocale();
   const workspace = useCurrentWorkspace();
   const user = useAuthStore((s) => s.user);
   const refreshMe = useAuthStore((s) => s.refreshMe);
@@ -115,7 +117,7 @@ export function StarterContentPrompt() {
       // component unmounts cleanly on the next render.
       await refreshMe();
 
-      toast.success("Starter tasks added — check your sidebar");
+      toast.success(t.onboarding.firstIssueTitle);
 
       // If the server took the agent-guided branch, a welcome issue
       // exists and we jump to it. Otherwise, stay on the issues list —
@@ -163,7 +165,7 @@ export function StarterContentPrompt() {
       <DialogContent showCloseButton={false} className="sm:max-w-[440px]">
         <DialogHeader>
           <DialogTitle className="text-balance font-serif text-[22px] leading-[1.2] font-medium tracking-tight">
-            Welcome — add starter tasks?
+            {t.onboarding.welcome}
           </DialogTitle>
           <DialogDescription className="pt-2 text-[14px] leading-[1.55]">
             A{" "}
@@ -184,13 +186,13 @@ export function StarterContentPrompt() {
             {submitting === "dismiss" && (
               <Loader2 className="h-4 w-4 animate-spin" />
             )}
-            Start blank workspace
+            {t.onboarding.createWorkspace}
           </Button>
           <Button onClick={onImport} disabled={submitting !== null}>
             {submitting === "import" && (
               <Loader2 className="h-4 w-4 animate-spin" />
             )}
-            Add starter tasks
+            {t.onboarding.ctaText}
           </Button>
         </DialogFooter>
       </DialogContent>

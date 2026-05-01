@@ -11,11 +11,13 @@ import { agentListOptions } from "@multica/core/workspace/queries";
 import { allChatSessionsOptions } from "@multica/core/chat/queries";
 import { useChatStore } from "@multica/core/chat";
 import { createLogger } from "@multica/core/logger";
+import { useAppLocale } from "@multica/i18n";
 import type { ChatSession, Agent } from "@multica/core/types";
 
 const logger = createLogger("chat.ui");
 
 export function ChatSessionHistory() {
+  const { t } = useAppLocale();
   const wsId = useWorkspaceId();
   const setShowHistory = useChatStore((s) => s.setShowHistory);
   const setActiveSession = useChatStore((s) => s.setActiveSession);
@@ -56,9 +58,9 @@ export function ChatSessionHistory() {
           >
             <ArrowLeft />
           </TooltipTrigger>
-          <TooltipContent side="bottom">Back</TooltipContent>
+          <TooltipContent side="bottom">{t.common.back}</TooltipContent>
         </Tooltip>
-        <span className="text-sm font-medium">Chat History</span>
+        <span className="text-sm font-medium">{t.chat.history}</span>
       </div>
 
       {/* Session list */}
@@ -66,7 +68,7 @@ export function ChatSessionHistory() {
         {sessions.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-2 py-12 text-muted-foreground">
             <MessageSquare className="size-6" />
-            <span className="text-sm">No chat sessions yet</span>
+            <span className="text-sm">{t.chat.noConversations}</span>
           </div>
         ) : (
           <div>

@@ -14,6 +14,7 @@ import type { Agent } from "@multica/core/types";
 import { Button } from "@multica/ui/components/ui/button";
 import { Input } from "@multica/ui/components/ui/input";
 import { toast } from "sonner";
+import { useAppLocale } from "@multica/i18n";
 
 let nextEnvId = 0;
 
@@ -55,6 +56,7 @@ export function EnvTab({
   onSave: (updates: Partial<Agent>) => Promise<void>;
   onDirtyChange?: (dirty: boolean) => void;
 }) {
+  const { t } = useAppLocale();
   const [envEntries, setEnvEntries] = useState<EnvEntry[]>(
     envMapToEntries(agent.custom_env ?? {}),
   );
@@ -104,16 +106,16 @@ export function EnvTab({
     const keys = envEntries.filter((e) => e.key.trim()).map((e) => e.key.trim());
     const uniqueKeys = new Set(keys);
     if (uniqueKeys.size < keys.length) {
-      toast.error("Duplicate environment variable keys");
+      toast.error(t.agents.duplicateEnvKeys);
       return;
     }
 
     setSaving(true);
     try {
       await onSave({ custom_env: currentEnvMap });
-      toast.success("Environment variables saved");
+      toast.success(t.agents.envSaved);
     } catch {
-      toast.error("Failed to save environment variables");
+      toast.error(t.agents.envSaveFailed);
     } finally {
       setSaving(false);
     }
@@ -231,7 +233,7 @@ export function EnvTab({
 
       <div className="flex items-center justify-end gap-3">
         {dirty && (
-          <span className="text-xs text-muted-foreground">Unsaved changes</span>
+          <span className="text-xs text-muted-foreground">{t.agents.unsavedChanges}</span>
         )}
         <Button onClick={handleSave} disabled={!dirty || saving} size="sm">
           {saving ? (
@@ -239,7 +241,7 @@ export function EnvTab({
           ) : (
             <Save className="h-3.5 w-3.5" />
           )}
-          Save
+          {t.common.save}
         </Button>
       </div>
     </div>

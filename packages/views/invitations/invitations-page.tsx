@@ -2,6 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAppLocale } from "@multica/i18n";
 import { api } from "@multica/core/api";
 import { useAuthStore } from "@multica/core/auth";
 import {
@@ -39,6 +40,7 @@ import { LogOut, Mail, Users } from "lucide-react";
  *    action.
  */
 export function InvitationsPage() {
+  const { t } = useAppLocale();
   const { push } = useNavigation();
   const qc = useQueryClient();
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -157,12 +159,12 @@ export function InvitationsPage() {
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
               <Mail className="h-6 w-6 text-muted-foreground" />
             </div>
-            <h2 className="text-lg font-semibold">No pending invitations</h2>
+            <h2 className="text-lg font-semibold">{t.invitations.youHaveBeenInvited}</h2>
             <p className="text-sm text-muted-foreground text-center">
-              Continue to set up your own workspace.
+              {t.invitations.continueToOnboarding}
             </p>
             <Button onClick={() => push(paths.onboarding())}>
-              Continue to setup
+              {t.invitations.continueToOnboarding}
             </Button>
           </CardContent>
         </Card>
@@ -172,10 +174,10 @@ export function InvitationsPage() {
 
   const submitLabel =
     selected.size === 0
-      ? "Skip and set up my own workspace"
+      ? t.invitations.continueToOnboarding
       : selected.size === 1
-        ? "Join 1 workspace"
-        : `Join ${selected.size} workspaces`;
+        ? t.invitations.acceptInvitation
+        : t.invitations.acceptAndContinue;
 
   return (
     <InvitationsShell>
@@ -187,11 +189,10 @@ export function InvitationsPage() {
             </div>
             <div className="space-y-1">
               <h2 className="text-xl font-semibold">
-                You&apos;ve been invited
+                {t.invitations.youHaveBeenInvited}
               </h2>
               <p className="text-sm text-muted-foreground">
-                Pick the workspaces you want to join. You can always handle the
-                rest later from the sidebar.
+                {t.invitations.workspaceInvitations}
               </p>
             </div>
           </div>
@@ -212,7 +213,7 @@ export function InvitationsPage() {
             onClick={handleSubmit}
             disabled={submitting}
           >
-            {submitting ? "Joining..." : submitLabel}
+            {submitting ? t.invitations.accepting : submitLabel}
           </Button>
 
           {error && (
@@ -259,6 +260,7 @@ function InvitationRow({
 }
 
 function InvitationsShell({ children }: { children: ReactNode }) {
+  const { t } = useAppLocale();
   const logout = useLogout();
   return (
     <div className="relative flex min-h-svh flex-col bg-background">
@@ -270,7 +272,7 @@ function InvitationsShell({ children }: { children: ReactNode }) {
         onClick={logout}
       >
         <LogOut />
-        Log out
+        {t.common.back}
       </Button>
       <div className="flex flex-1 flex-col items-center justify-center px-6 pb-12">
         {children}

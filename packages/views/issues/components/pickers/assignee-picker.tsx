@@ -6,6 +6,7 @@ import type { Agent, IssueAssigneeType, UpdateIssueRequest } from "@multica/core
 import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "@multica/core/auth";
 import { canAssignAgentToIssue } from "@multica/core/permissions";
+import { useAppLocale } from "@multica/i18n";
 import { useActorName } from "@multica/core/workspace/hooks";
 import { useWorkspaceId } from "@multica/core/hooks";
 import { memberListOptions, agentListOptions, assigneeFrequencyOptions } from "@multica/core/workspace/queries";
@@ -54,6 +55,7 @@ export function AssigneePicker({
   onOpenChange?: (v: boolean) => void;
   align?: "start" | "center" | "end";
 }) {
+  const { t } = useAppLocale();
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
   const setOpen = controlledOnOpenChange ?? setInternalOpen;
@@ -93,7 +95,7 @@ export function AssigneePicker({
   const triggerLabel =
     assigneeType && assigneeId
       ? getActorName(assigneeType, assigneeId)
-      : "Unassigned";
+      : t.issues.noAssignee;
 
   return (
     <PropertyPicker
@@ -115,7 +117,7 @@ export function AssigneePicker({
             <span className="truncate">{triggerLabel}</span>
           </>
         ) : (
-          <span className="text-muted-foreground">Unassigned</span>
+          <span className="text-muted-foreground">{t.issues.noAssignee}</span>
         )
       }
     >
@@ -129,7 +131,7 @@ export function AssigneePicker({
           }}
         >
           <UserMinus className="h-3.5 w-3.5 text-muted-foreground" />
-          <span className="text-muted-foreground">Unassigned</span>
+          <span className="text-muted-foreground">{t.issues.noAssignee}</span>
         </PickerItem>
       )}
 

@@ -40,6 +40,7 @@ import {
 import { Input } from "@multica/ui/components/ui/input";
 import { Skeleton } from "@multica/ui/components/ui/skeleton";
 import { DataTable } from "@multica/ui/components/ui/data-table";
+import { useAppLocale } from "@multica/i18n";
 import { useNavigation } from "../../navigation";
 import { PageHeader } from "../../layout/page-header";
 import { availabilityConfig, availabilityOrder } from "../presence";
@@ -63,17 +64,19 @@ type AvailabilityFilter = "all" | AgentAvailability;
 
 type SortKey = "recent" | "name" | "runs" | "created";
 const SORT_KEYS: SortKey[] = ["recent", "name", "runs", "created"];
-const SORT_LABEL: Record<SortKey, string> = {
-  recent: "Recent activity",
-  name: "Name",
-  runs: "Most runs",
-  created: "Recently created",
-};
 
 export function AgentsPage() {
+  const { t } = useAppLocale();
   const wsId = useWorkspaceId();
   const paths = useWorkspacePaths();
   const navigation = useNavigation();
+
+  const SORT_LABEL: Record<SortKey, string> = {
+    recent: t.agents.recentActivity,
+    name: t.agents.name,
+    runs: t.agents.mostRuns,
+    created: t.agents.recentlyCreated,
+  };
   const qc = useQueryClient();
   const currentUser = useAuthStore((s) => s.user);
 
@@ -357,11 +360,28 @@ export function AgentsPage() {
     initialState: { columnPinning: { right: ["actions"] } },
   });
 
+  const labels = {
+    mine: t.agents.mine,
+    all_: t.agents.all_,
+    searchAgents: t.agents.searchAgents,
+    showArchived: t.agents.showArchived,
+    activeAgents: t.agents.activeAgents,
+    archivedAgents: t.agents.archivedAgents,
+    noAgentsYet: t.agents.noAgentsYet,
+    noMatches: t.agents.noMatches,
+    newAgent: t.agents.newAgent,
+    pageTitle: t.agents.pageTitle,
+    online: t.agents.online,
+    unstable: t.agents.unstable,
+    offline: t.agents.offline,
+    tryAgain: t.common.tryAgain,
+  };
+
   // ---- Loading ----
   if (isLoading) {
     return (
       <div className="flex flex-1 min-h-0 flex-col">
-        <PageHeaderBar totalCount={0} onCreate={() => setShowCreate(true)} />
+        <PageHeaderBar totalCount={0} onCreate={() => setShowCreate(true)} labels={labels} />
         <div className="flex flex-1 min-h-0 flex-col gap-4 p-6">
           <div className="flex flex-1 min-h-0 flex-col overflow-hidden rounded-lg border">
             <div className="flex h-12 shrink-0 items-center gap-2 border-b px-4">
@@ -388,11 +408,11 @@ export function AgentsPage() {
   if (listError) {
     return (
       <div className="flex flex-1 min-h-0 flex-col">
-        <PageHeaderBar totalCount={0} onCreate={() => setShowCreate(true)} />
+        <PageHeaderBar totalCount={0} onCreate={() => setShowCreate(true)} labels={labels} />
         <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 py-16 text-center">
           <AlertCircle className="h-8 w-8 text-destructive" />
           <div>
-            <p className="text-sm font-medium">Couldn&rsquo;t load agents</p>
+            <p className="text-sm font-medium">{t.agents.loadError}</p>
             <p className="mt-1 text-xs text-muted-foreground">
               {listError instanceof Error
                 ? listError.message
@@ -405,7 +425,7 @@ export function AgentsPage() {
             size="sm"
             onClick={() => refetchList()}
           >
-            Try again
+            {t.common.tryAgain}
           </Button>
         </div>
       </div>
@@ -419,12 +439,13 @@ export function AgentsPage() {
       <PageHeaderBar
         totalCount={totalActiveCount}
         onCreate={() => setShowCreate(true)}
+        labels={labels}
       />
 
       <div className="flex flex-1 min-h-0 flex-col gap-4 p-6">
         {showEmpty ? (
           <div className="flex flex-1 items-center justify-center">
-            <EmptyState onCreate={() => setShowCreate(true)} />
+            <EmptyState onCreate={() => setShowCreate(true)} labels={labels} />
           </div>
         ) : (
           <div className="flex flex-1 min-h-0 flex-col overflow-hidden rounded-lg border bg-background">
@@ -442,12 +463,15 @@ export function AgentsPage() {
                   totalCount={inScope.length}
                   archivedCount={archivedCount}
                   onShowArchived={() => setView("archived")}
+                  labels={labels}
+                  SORT_LABEL={SORT_LABEL}
                 />
                 <AvailabilityFilterRow
                   value={availabilityFilter}
                   onChange={setAvailabilityFilter}
                   counts={availabilityCounts}
                   totalCount={inScope.length}
+                  labels={labels}
                 />
               </>
             ) : (
@@ -456,11 +480,13 @@ export function AgentsPage() {
                 archivedCount={archivedCount}
                 sort={sort}
                 setSort={setSort}
+                labels={labels}
+                SORT_LABEL={SORT_LABEL}
               />
             )}
 
             {sortedAgents.length === 0 ? (
-              <NoMatches view={view} search={search} scope={scope} />
+              <NoMatches view={view} search={search} scope={scope} labels={labels} />
             ) : (
               <DataTable
                 table={table}
@@ -498,25 +524,22 @@ export function AgentsPage() {
 function PageHeaderBar({
   totalCount,
   onCreate,
+  labels,
 }: {
   totalCount: number;
   onCreate: () => void;
+  labels: { pageTitle: string; newAgent: string };
 }) {
   return (
     <PageHeader className="justify-between px-5">
       <div className="flex items-center gap-2">
         <Bot className="h-4 w-4 text-muted-foreground" />
-        <h1 className="text-sm font-medium">Agents</h1>
+        <h1 className="text-sm font-medium">{labels.pageTitle}</h1>
         {totalCount > 0 && (
           <span className="font-mono text-xs tabular-nums text-muted-foreground/70">
             {totalCount}
           </span>
         )}
-        {/* Tagline next to the title — mirrors Runtimes / Skills. Single
-            sentence + docs link, hidden below md so it never collides with
-            the title on narrow screens. The presence chip row below carries
-            the state-legend job, so the tagline only needs to anchor what
-            an agent IS, not what each colour means. */}
         <p className="ml-2 hidden text-xs text-muted-foreground md:block">
           AI teammates that pick up issues, comment, and update status.{" "}
           <a
@@ -531,7 +554,7 @@ function PageHeaderBar({
       </div>
       <Button type="button" size="sm" onClick={onCreate}>
         <Plus className="h-3 w-3" />
-        New agent
+        {labels.newAgent}
       </Button>
     </PageHeader>
   );
@@ -553,6 +576,8 @@ function ActiveToolbarRow({
   totalCount,
   archivedCount,
   onShowArchived,
+  labels,
+  SORT_LABEL,
 }: {
   scope: Scope;
   setScope: (v: Scope) => void;
@@ -565,12 +590,9 @@ function ActiveToolbarRow({
   totalCount: number;
   archivedCount: number;
   onShowArchived: () => void;
+  labels: { searchAgents: string; showArchived: string; mine: string; all_: string };
+  SORT_LABEL: Record<SortKey, string>;
 }) {
-  // Layout: [Search] [Mine|All] ......... [Show archived] [N of M] [Sort ▼]
-  // Filter chips were removed (status / workload chips on a small team
-  // gain less than they cost), so the toolbar collapses to a single row.
-  // Visible/total count and the archived link inherit their old position
-  // from the deleted PresenceFilterRows.
   return (
     <div className="flex h-12 shrink-0 items-center gap-3 border-b px-4">
       <div className="relative">
@@ -578,11 +600,11 @@ function ActiveToolbarRow({
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search agents…"
+          placeholder={labels.searchAgents}
           className="h-8 w-64 pl-8 text-sm"
         />
       </div>
-      <ScopeSegment scope={scope} setScope={setScope} counts={scopeCounts} />
+      <ScopeSegment scope={scope} setScope={setScope} counts={scopeCounts} labels={labels} />
       <div className="ml-auto flex items-center gap-3">
         {archivedCount > 0 && (
           <button
@@ -590,13 +612,13 @@ function ActiveToolbarRow({
             onClick={onShowArchived}
             className="text-xs text-muted-foreground transition-colors hover:text-foreground"
           >
-            Show archived ({archivedCount}) →
+            {labels.showArchived} ({archivedCount}) →
           </button>
         )}
         <span className="font-mono text-xs tabular-nums text-muted-foreground/70">
           {visibleCount} of {totalCount}
         </span>
-        <SortDropdown sort={sort} setSort={setSort} />
+        <SortDropdown sort={sort} setSort={setSort} SORT_LABEL={SORT_LABEL} />
       </div>
     </div>
   );
@@ -606,24 +628,24 @@ function ScopeSegment({
   scope,
   setScope,
   counts,
+  labels,
 }: {
   scope: Scope;
   setScope: (v: Scope) => void;
   counts: { all: number; mine: number };
+  labels: { mine: string; all_: string };
 }) {
-  // Mine first — that's the more frequent scope (your own agents) and
-  // also the default selection, so it lives in the leading slot.
   return (
     <div className="flex items-center gap-0.5 rounded-md bg-muted p-0.5">
       <ScopeButton
         active={scope === "mine"}
-        label="Mine"
+        label={labels.mine}
         count={counts.mine}
         onClick={() => setScope("mine")}
       />
       <ScopeButton
         active={scope === "all"}
-        label="All"
+        label={labels.all_}
         count={counts.all}
         onClick={() => setScope("all")}
       />
@@ -667,9 +689,11 @@ function ScopeButton({
 function SortDropdown({
   sort,
   setSort,
+  SORT_LABEL,
 }: {
   sort: SortKey;
   setSort: (v: SortKey) => void;
+  SORT_LABEL: Record<SortKey, string>;
 }) {
   return (
     <DropdownMenu>
@@ -710,18 +734,20 @@ function AvailabilityFilterRow({
   onChange,
   counts,
   totalCount,
+  labels,
 }: {
   value: AvailabilityFilter;
   onChange: (v: AvailabilityFilter) => void;
   counts: Record<AgentAvailability, number>;
   totalCount: number;
+  labels: { all_: string; online: string; unstable: string; offline: string };
 }) {
   return (
     <div className="flex h-11 shrink-0 items-center gap-2 border-b px-4">
       <AvailabilityChip
         active={value === "all"}
         onClick={() => onChange("all")}
-        label="All"
+        label={labels.all_}
         count={totalCount}
       />
       {availabilityOrder.map((a) => {
@@ -784,11 +810,15 @@ function ArchivedToolbarRow({
   archivedCount,
   sort,
   setSort,
+  labels,
+  SORT_LABEL,
 }: {
   onBack: () => void;
   archivedCount: number;
   sort: SortKey;
   setSort: (v: SortKey) => void;
+  labels: { activeAgents: string; archivedAgents: string };
+  SORT_LABEL: Record<SortKey, string>;
 }) {
   return (
     <div className="flex h-12 shrink-0 items-center gap-3 border-b px-4">
@@ -798,15 +828,15 @@ function ArchivedToolbarRow({
         className="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
       >
         <ArrowLeft className="h-3 w-3" />
-        Active agents
+        {labels.activeAgents}
       </button>
       <span className="text-muted-foreground/40">/</span>
-      <span className="text-xs font-medium">Archived agents</span>
+      <span className="text-xs font-medium">{labels.archivedAgents}</span>
       <span className="font-mono text-xs tabular-nums text-muted-foreground/70">
         {archivedCount}
       </span>
       <div className="ml-auto">
-        <SortDropdown sort={sort} setSort={setSort} />
+        <SortDropdown sort={sort} setSort={setSort} SORT_LABEL={SORT_LABEL} />
       </div>
     </div>
   );
@@ -816,20 +846,20 @@ function ArchivedToolbarRow({
 // Empty / no-matches states
 // ---------------------------------------------------------------------------
 
-function EmptyState({ onCreate }: { onCreate: () => void }) {
+function EmptyState({ onCreate, labels }: { onCreate: () => void; labels: { noAgentsYet: string; newAgent: string } }) {
   return (
     <div className="flex flex-1 flex-col items-center justify-center px-6 py-16 text-center">
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
         <Bot className="h-6 w-6 text-muted-foreground" />
       </div>
-      <h2 className="mt-4 text-base font-semibold">No agents yet</h2>
+      <h2 className="mt-4 text-base font-semibold">{labels.noAgentsYet}</h2>
       <p className="mt-1 max-w-md text-sm text-muted-foreground">
         Create an agent and assign it issues, like any teammate. Local agents
         run on your machine; cloud agents run on Multica&rsquo;s runtime.
       </p>
       <Button type="button" onClick={onCreate} size="sm" className="mt-5">
         <Plus className="h-3 w-3" />
-        New agent
+        {labels.newAgent}
       </Button>
     </div>
   );
@@ -839,15 +869,14 @@ function NoMatches({
   view,
   search,
   scope,
+  labels,
 }: {
   view: View;
   search: string;
   scope: Scope;
+  labels: { noMatches: string };
 }) {
   const hasSearch = search.length > 0;
-  // "mine" is the only remaining narrowing dimension after chip filters
-  // were dropped — keep the wording aware of it so an empty Mine view
-  // doesn't suggest the workspace itself is empty.
   const hasFilter = scope === "mine";
 
   let body: string;
@@ -864,7 +893,7 @@ function NoMatches({
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-2 px-4 py-16 text-center text-muted-foreground">
       <Search className="h-8 w-8 text-muted-foreground/40" />
-      <p className="text-sm">No matches</p>
+      <p className="text-sm">{labels.noMatches}</p>
       <p className="max-w-xs text-xs">{body}</p>
     </div>
   );

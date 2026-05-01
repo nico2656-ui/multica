@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { useAppLocale } from "@multica/i18n";
 import { projectListOptions, projectDetailOptions } from "@multica/core/projects/queries";
 import { useWorkspaceId } from "@multica/core/hooks";
 import { ProjectIcon } from "./project-icon";
@@ -29,6 +30,7 @@ export function ProjectChip({
   className,
 }: ProjectChipProps) {
   const wsId = useWorkspaceId();
+  const { t } = useAppLocale();
   const { data: projects = [] } = useQuery(projectListOptions(wsId));
   const listProject = projects.find((p) => p.id === projectId);
 
@@ -45,7 +47,7 @@ export function ProjectChip({
       <span className={cls}>
         <ProjectIcon size="md" />
         <span className="text-muted-foreground truncate">
-          {fallbackLabel ?? "Project"}
+          {fallbackLabel ?? t.projects.project}
         </span>
       </span>
     );

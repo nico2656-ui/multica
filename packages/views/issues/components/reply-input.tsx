@@ -2,6 +2,7 @@
 
 import { useRef, useState, useCallback } from "react";
 import { ArrowUp, Loader2, Maximize2, Minimize2 } from "lucide-react";
+import { useAppLocale } from "@multica/i18n";
 import { ContentEditor, type ContentEditorRef, useFileDropZone, FileDropOverlay } from "../../editor";
 import { FileUploadButton } from "@multica/ui/components/common/file-upload-button";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@multica/ui/components/ui/tooltip";
@@ -29,12 +30,13 @@ interface ReplyInputProps {
 
 function ReplyInput({
   issueId,
-  placeholder = "Leave a reply...",
+  placeholder,
   avatarType,
   avatarId,
   onSubmit,
   size = "default",
 }: ReplyInputProps) {
+  const { t } = useAppLocale();
   const editorRef = useRef<ContentEditorRef>(null);
   const [isEmpty, setIsEmpty] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -93,9 +95,9 @@ function ReplyInput({
         )}
       >
         <div className="flex-1 min-h-0 overflow-y-auto">
-          <ContentEditor
+            <ContentEditor
             ref={editorRef}
-            placeholder={placeholder}
+            placeholder={placeholder ?? t.issues.reply}
             onUpdate={(md) => setIsEmpty(!md.trim())}
             onSubmit={handleSubmit}
             onUploadFile={handleUpload}

@@ -16,6 +16,7 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@multica/ui/lib/utils";
+import { useAppLocale } from "@multica/i18n";
 import { Button } from "@multica/ui/components/ui/button";
 import {
   Dialog,
@@ -62,6 +63,7 @@ export function DaemonPanel({
   status,
   runtimeCount,
 }: DaemonPanelProps) {
+  const { t } = useAppLocale();
   const [logs, setLogs] = useState<ParsedLogLine[]>([]);
   const [search, setSearch] = useState("");
   // Each level chip is an independent toggle. DEBUG is off by default so
@@ -252,7 +254,7 @@ export function DaemonPanel({
           <div className="flex min-w-0 items-center gap-2">
             <Server className="size-4 shrink-0 text-muted-foreground" />
             <DialogTitle className="text-sm font-medium">
-              Local daemon logs
+              {t.desktop.daemonPanel}
             </DialogTitle>
             <ContextBadge status={status} runtimeCount={runtimeCount} />
           </div>
@@ -274,7 +276,7 @@ export function DaemonPanel({
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search…"
+              placeholder={t.desktop.daemonSearch}
               className="h-7 w-full rounded-md border bg-background pl-7 pr-2 text-xs placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
             />
           </div>
@@ -305,7 +307,7 @@ export function DaemonPanel({
               disabled={filtered.length === 0}
             >
               <CopyIcon className="size-3.5 mr-1.5" />
-              Copy
+              {t.desktop.copy}
             </Button>
             <Button
               variant="ghost"
@@ -315,7 +317,7 @@ export function DaemonPanel({
               disabled={logs.length === 0}
             >
               <Trash2 className="size-3.5 mr-1.5" />
-              Clear
+              {t.desktop.clear}
             </Button>
           </div>
         </div>
@@ -398,6 +400,7 @@ function ContextBadge({
   status: DaemonStatus;
   runtimeCount: number;
 }) {
+  const { t } = useAppLocale();
   const isRunning = status.state === "running";
   return (
     <span className="inline-flex items-center gap-1.5 rounded-md border bg-background px-1.5 py-0.5 text-xs font-normal">
@@ -413,7 +416,13 @@ function ContextBadge({
           isRunning ? "text-foreground" : "text-muted-foreground",
         )}
       >
-        {DAEMON_STATE_LABELS[status.state]}
+        {status.state === "running"
+          ? t.desktop.daemonRunning
+          : status.state === "stopped"
+            ? t.desktop.daemonStopped
+            : status.state === "installing_cli"
+              ? t.desktop.daemonInstalling
+              : DAEMON_STATE_LABELS[status.state]}
       </span>
       {isRunning && status.uptime && (
         <span className="text-muted-foreground">

@@ -35,8 +35,10 @@ import {
 import { Skeleton } from "@multica/ui/components/ui/skeleton";
 import { toast } from "sonner";
 import { api } from "@multica/core/api";
+import { useAppLocale } from "@multica/i18n";
 
 export function TokensTab() {
+  const { t } = useAppLocale();
   const [tokens, setTokens] = useState<PersonalAccessToken[]>([]);
   const [tokenName, setTokenName] = useState("");
   const [tokenExpiry, setTokenExpiry] = useState("90");
@@ -101,7 +103,7 @@ export function TokensTab() {
       <section className="space-y-4">
         <div className="flex items-center gap-2">
           <Key className="h-4 w-4 text-muted-foreground" />
-          <h2 className="text-sm font-semibold">API Tokens</h2>
+          <h2 className="text-sm font-semibold">{t.settings.apiTokens}</h2>
         </div>
 
         <Card>
@@ -119,14 +121,14 @@ export function TokensTab() {
               <Select value={tokenExpiry} onValueChange={(v) => { if (v) setTokenExpiry(v); }}>
                 <SelectTrigger size="sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="30">30 days</SelectItem>
-                  <SelectItem value="90">90 days</SelectItem>
-                  <SelectItem value="365">1 year</SelectItem>
-                  <SelectItem value="never">No expiry</SelectItem>
+                  <SelectItem value="30">{t.settings.token30Days}</SelectItem>
+                  <SelectItem value="90">{t.settings.token90Days}</SelectItem>
+                  <SelectItem value="365">{t.settings.token1Year}</SelectItem>
+                  <SelectItem value="never">{t.settings.tokenNoExpiry}</SelectItem>
                 </SelectContent>
               </Select>
               <Button onClick={handleCreateToken} disabled={tokenCreating || !tokenName.trim()}>
-                {tokenCreating ? "Creating..." : "Create"}
+                {tokenCreating ? t.common.creating : t.common.create}
               </Button>
             </div>
           </CardContent>
@@ -172,7 +174,7 @@ export function TokensTab() {
                         </Button>
                       }
                     />
-                    <TooltipContent>Revoke</TooltipContent>
+                    <TooltipContent>{t.settings.revoke}</TooltipContent>
                   </Tooltip>
                 </CardContent>
               </Card>
@@ -184,13 +186,13 @@ export function TokensTab() {
       <AlertDialog open={!!revokeConfirmId} onOpenChange={(v) => { if (!v) setRevokeConfirmId(null); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Revoke token</AlertDialogTitle>
+            <AlertDialogTitle>{t.settings.revokeToken}</AlertDialogTitle>
             <AlertDialogDescription>
               This token will be permanently revoked and can no longer be used. This cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t.common.cancel}</AlertDialogCancel>
             <AlertDialogAction
               variant="destructive"
               onClick={async () => {
@@ -198,7 +200,7 @@ export function TokensTab() {
                 setRevokeConfirmId(null);
               }}
             >
-              Revoke
+              {t.settings.revoke}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -207,7 +209,7 @@ export function TokensTab() {
       <Dialog open={!!newToken} onOpenChange={(v) => { if (!v) { setNewToken(null); setTokenCopied(false); } }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Token created</DialogTitle>
+            <DialogTitle>{t.settings.tokenCreated}</DialogTitle>
             <DialogDescription>
               Copy your personal access token now. You won&apos;t be able to see it again.
             </DialogDescription>

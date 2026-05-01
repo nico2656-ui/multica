@@ -39,6 +39,7 @@ import {
   FileDropOverlay,
 } from "../editor";
 import { FileUploadButton } from "@multica/ui/components/common/file-upload-button";
+import { useAppLocale } from "@multica/i18n";
 
 // AgentCreatePanel — agent-mode body of the create-issue dialog. Renders
 // only the inner content; the surrounding `<Dialog>` AND `<DialogContent>`
@@ -58,6 +59,7 @@ export function AgentCreatePanel({
   onSwitchMode?: () => void;
   data?: Record<string, unknown> | null;
 }) {
+  const { t } = useAppLocale();
   const workspaceName = useCurrentWorkspace()?.name;
   const wsId = useWorkspaceId();
   const userId = useAuthStore((s) => s.user?.id);
@@ -167,7 +169,7 @@ export function AgentCreatePanel({
       await api.quickCreateIssue({ agent_id: agentId, prompt: md });
       setLastAgentId(agentId);
       setLastMode("agent");
-      toast.success("Sent to agent — you'll get an inbox notification when it's done", {
+      toast.success(t.issues.agentSent, {
         duration: 4000,
       });
       if (keepOpen) {
@@ -195,7 +197,7 @@ export function AgentCreatePanel({
           min_version?: string;
         };
         if (body.code === "agent_unavailable") {
-          setError(body.reason || "Agent is unavailable. Pick another agent.");
+          setError(body.reason || t.issues.agentUnavailable);
           setSubmitting(false);
           return;
         }
@@ -212,7 +214,7 @@ export function AgentCreatePanel({
           return;
         }
       }
-      setError("Failed to submit. Try again.");
+      setError(t.issues.submitFailed);
     } finally {
       setSubmitting(false);
     }
@@ -238,24 +240,20 @@ export function AgentCreatePanel({
 
   return (
     <>
-        <DialogTitle className="sr-only">Quick create issue</DialogTitle>
+        <DialogTitle className="sr-only">{t.issues.quickCreate}</DialogTitle>
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 pt-3 pb-2 shrink-0">
           <div className="flex items-center gap-1.5 text-xs">
             <span className="text-muted-foreground">{workspaceName}</span>
             <ChevronRight className="size-3 text-muted-foreground/50" />
-            <span className="font-medium">Create with agent</span>
+            <span className="font-medium">{t.issues.createWithAgent}</span>
           </div>
-          {/* Native `title` instead of Base UI Tooltip — Tooltip opens on
-              keyboard focus, and the dialog's focus trap briefly lands focus
-              on the first focusable element on mount, causing the tooltip to
-              auto-pop every open. */}
           <button
             type="button"
             onClick={onClose}
-            title="Close"
-            aria-label="Close"
+            title={t.issues.close}
+            aria-label={t.issues.close}
             className="rounded-sm p-1.5 opacity-70 hover:opacity-100 hover:bg-accent/60 transition-all cursor-pointer"
           >
             <XIcon className="size-4" />
@@ -269,10 +267,10 @@ export function AgentCreatePanel({
               render={
                 <button
                   type="button"
-                  aria-label="Select agent"
-                  className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer rounded-sm px-1.5 py-1 -ml-1.5 hover:bg-accent/60"
-                >
-                  <span>Created by</span>
+                aria-label={t.issues.selectAgent}
+                className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer rounded-sm px-1.5 py-1 -ml-1.5 hover:bg-accent/60"
+              >
+                <span>{t.issues.createdBy}</span>
                   {selectedAgent ? (
                     <span className="flex items-center gap-1.5 text-foreground">
                       <ActorAvatar
@@ -283,7 +281,7 @@ export function AgentCreatePanel({
                       {selectedAgent.name}
                     </span>
                   ) : (
-                    <span>Pick an agent…</span>
+                    <span>{t.issues.pickAgent}</span>
                   )}
                 </button>
               }
@@ -291,7 +289,7 @@ export function AgentCreatePanel({
             <DropdownMenuContent align="start" className="w-64 max-h-72 overflow-y-auto">
               {visibleAgents.length === 0 ? (
                 <div className="px-2 py-1.5 text-xs text-muted-foreground">
-                  No agents available.
+                  {t.issues.noAgentsAvailable}
                 </div>
               ) : (
                 visibleAgents.map((a: Agent) => (
@@ -364,7 +362,7 @@ export function AgentCreatePanel({
             />
             {keepOpen && sentCount > 0 && (
               <span className="text-xs text-emerald-600 dark:text-emerald-400">
-                {sentCount} sent
+                {sentCount} {t.issues.sent}
               </span>
             )}
           </div>
@@ -372,11 +370,11 @@ export function AgentCreatePanel({
             <button
               type="button"
               onClick={switchToManual}
-              title="Switch to manual create — fill the fields yourself"
-              className="flex shrink-0 items-center gap-1.5 text-xs px-2 py-1 rounded-sm text-muted-foreground hover:text-foreground hover:bg-accent/60 transition-colors cursor-pointer"
-            >
-              <ArrowLeftRight className="size-3.5" />
-              Switch to Manual
+                  title={t.issues.switchToManualHint}
+                  className="flex shrink-0 items-center gap-1.5 text-xs px-2 py-1 rounded-sm text-muted-foreground hover:text-foreground hover:bg-accent/60 transition-colors cursor-pointer"
+                >
+                  <ArrowLeftRight className="size-3.5" />
+                  {t.issues.switchToManual}
             </button>
             <label className="flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground cursor-pointer select-none">
               <Switch
@@ -384,7 +382,7 @@ export function AgentCreatePanel({
                 checked={keepOpen}
                 onCheckedChange={setKeepOpen}
               />
-              Create another
+              {t.issues.createAnother}
             </label>
             <Button
               size="sm"
@@ -397,9 +395,9 @@ export function AgentCreatePanel({
               }
               className={justSent ? "min-w-28 !bg-emerald-600 !text-white" : "min-w-28"}
             >
-              {submitting ? "Sending…" : uploading ? "Uploading…" : justSent ? (
-                <span className="flex items-center gap-1"><Check className="size-3.5" />Sent</span>
-              ) : "Create (⌘↵)"}
+              {submitting ? t.issues.sending : uploading ? t.issues.uploading : justSent ? (
+                <span className="flex items-center gap-1"><Check className="size-3.5" />{t.issues.sent}</span>
+              ) : t.issues.createAction}
             </Button>
           </div>
         </div>

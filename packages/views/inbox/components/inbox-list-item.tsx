@@ -3,6 +3,7 @@
 import { StatusIcon } from "../../issues/components";
 import { ActorAvatar } from "../../common/actor-avatar";
 import { Archive } from "lucide-react";
+import { useAppLocale } from "@multica/i18n";
 import type { InboxItem } from "@multica/core/types";
 import { InboxDetailLabel } from "./inbox-detail-label";
 import { getInboxDisplayTitle } from "./inbox-display";
@@ -31,6 +32,7 @@ export function InboxListItem({
   onClick: () => void;
   onArchive: () => void;
 }) {
+  const { t } = useAppLocale();
   const displayTitle = getInboxDisplayTitle(item);
 
   return (

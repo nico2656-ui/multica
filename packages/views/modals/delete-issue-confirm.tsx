@@ -13,6 +13,7 @@ import {
   AlertDialogTitle,
 } from "@multica/ui/components/ui/alert-dialog";
 import { useDeleteIssue } from "@multica/core/issues/mutations";
+import { useAppLocale } from "@multica/i18n";
 import { useNavigation } from "../navigation";
 
 export function DeleteIssueConfirmModal({
@@ -22,6 +23,7 @@ export function DeleteIssueConfirmModal({
   onClose: () => void;
   data: Record<string, unknown> | null;
 }) {
+  const { t } = useAppLocale();
   const issueId = (data?.issueId as string) || "";
   const navigateTo = (data?.onDeletedNavigateTo as string | undefined) || undefined;
   const [deleting, setDeleting] = useState(false);
@@ -46,22 +48,22 @@ export function DeleteIssueConfirmModal({
     <AlertDialog open onOpenChange={(v) => { if (!v && !deleting) onClose(); }}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete issue</AlertDialogTitle>
+          <AlertDialogTitle>{t.modals.deleteIssue}</AlertDialogTitle>
           <AlertDialogDescription>
-            This will permanently delete this issue and all its comments. This action cannot be undone.
+            {t.modals.deleteIssueConfirm}
             <span className="mt-2 block text-xs text-muted-foreground/80">
               Any workspace member can delete issues.
             </span>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={deleting}>{t.common.cancel}</AlertDialogCancel>
           <AlertDialogAction
             onClick={handleDelete}
             disabled={deleting}
             className="bg-destructive text-white hover:bg-destructive/90"
           >
-            {deleting ? "Deleting..." : "Delete"}
+            {deleting ? "Deleting..." : t.common.delete}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

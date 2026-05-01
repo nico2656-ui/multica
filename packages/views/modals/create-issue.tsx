@@ -47,6 +47,7 @@ import { api } from "@multica/core/api";
 import { FileUploadButton } from "@multica/ui/components/common/file-upload-button";
 import { PillButton } from "../common/pill-button";
 import { IssuePickerModal } from "./issue-picker-modal";
+import { useAppLocale } from "@multica/i18n";
 
 // ---------------------------------------------------------------------------
 // ManualCreatePanel — manual-mode body of the create-issue dialog. Renders
@@ -77,6 +78,7 @@ export function ManualCreatePanel({
   backlogHintIssueId: string | null;
   setBacklogHintIssueId: (id: string | null) => void;
 }) {
+  const { t } = useAppLocale();
   const router = useNavigation();
   const p = useWorkspacePaths();
   const workspaceName = useCurrentWorkspace()?.name;
@@ -198,7 +200,7 @@ export function ManualCreatePanel({
         if (failed > 0) {
           toast.error(
             failed === childIssues.length
-              ? "Failed to link sub-issues"
+              ? t.issues.linkSubIssuesFailed
               : `Failed to link ${failed} of ${childIssues.length} sub-issues`,
           );
         }
@@ -220,13 +222,14 @@ export function ManualCreatePanel({
       }
 
       if (!shouldShowBacklogHint) {
-        toast.custom((t) => (
+        const dict = t;
+        toast.custom((toastId) => (
           <div className="bg-popover text-popover-foreground border rounded-lg shadow-lg p-4 w-[360px]">
             <div className="flex items-center gap-2 mb-2">
               <div className="flex items-center justify-center size-5 rounded-full bg-emerald-500/15 text-emerald-500">
                 <Check className="size-3" />
               </div>
-              <span className="text-sm font-medium">Issue created</span>
+              <span className="text-sm font-medium">{dict.issues.issueCreated}</span>
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground ml-7">
               <StatusIcon status={issue.status} className="size-3.5 shrink-0" />
@@ -237,16 +240,16 @@ export function ManualCreatePanel({
               className="ml-7 mt-2 text-sm text-primary hover:underline cursor-pointer"
               onClick={() => {
                 router.push(p.issueDetail(issue.id));
-                toast.dismiss(t);
+                toast.dismiss(toastId);
               }}
             >
-              View issue
+              {dict.issues.viewIssue}
             </button>
           </div>
         ), { duration: 5000 });
       }
     } catch {
-      toast.error("Failed to create issue");
+      toast.error(t.issues.createIssueFailed);
     } finally {
       setSubmitting(false);
     }
@@ -291,14 +294,14 @@ export function ManualCreatePanel({
           />
         ) : (
           <>
-            <DialogTitle className="sr-only">New Issue</DialogTitle>
+            <DialogTitle className="sr-only">{t.issues.newIssue}</DialogTitle>
 
             {/* Header */}
             <div className="flex items-center justify-between px-5 pt-3 pb-2 shrink-0">
               <div className="flex items-center gap-1.5 text-xs">
                 <span className="text-muted-foreground">{workspaceName}</span>
                 <ChevronRight className="size-3 text-muted-foreground/50" />
-                <span className="font-medium">Create manually</span>
+                <span className="font-medium">{t.issues.createManually}</span>
               </div>
               <div className="flex items-center gap-1">
                 <Tooltip>
@@ -312,7 +315,7 @@ export function ManualCreatePanel({
                       </button>
                     }
                   />
-                  <TooltipContent side="bottom">{isExpanded ? "Collapse" : "Expand"}</TooltipContent>
+                  <TooltipContent side="bottom">{isExpanded ? t.issues.collapse : t.issues.expand}</TooltipContent>
                 </Tooltip>
                 <Tooltip>
                   <TooltipTrigger
@@ -325,7 +328,7 @@ export function ManualCreatePanel({
                       </button>
                     }
                   />
-                  <TooltipContent side="bottom">Close</TooltipContent>
+                  <TooltipContent side="bottom">{t.issues.close}</TooltipContent>
                 </Tooltip>
               </div>
             </div>
@@ -336,7 +339,7 @@ export function ManualCreatePanel({
                 key={formResetKey}
                 autoFocus
                 defaultValue={draft.title}
-                placeholder="Issue title"
+                placeholder={t.issues.issueTitle}
                 className="text-lg font-semibold"
                 onChange={(v) => updateTitle(v)}
                 onSubmit={handleSubmit}
@@ -348,7 +351,7 @@ export function ManualCreatePanel({
               <ContentEditor
                 ref={descEditorRef}
                 defaultValue={draft.description}
-                placeholder="Add description..."
+                placeholder={t.issues.addDescription}
                 onUpdate={(md) => setDraft({ description: md })}
                 onUploadFile={handleUpload}
                 debounceMs={500}
@@ -413,13 +416,13 @@ export function ManualCreatePanel({
                     className="flex items-center gap-1.5 py-1 pl-2.5 cursor-pointer"
                   >
                     <ArrowUp className="size-3 text-muted-foreground" />
-                    <span>Sub-issue of {parentIssue.identifier}</span>
+                    <span>{t.issues.subIssueOf} {parentIssue.identifier}</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setParentIssueId(undefined)}
                     className="p-1 pr-2 text-muted-foreground hover:text-foreground cursor-pointer"
-                    aria-label="Remove parent"
+                    aria-label={t.issues.removeParent}
                   >
                     <XIcon className="size-3" />
                   </button>
@@ -435,7 +438,7 @@ export function ManualCreatePanel({
                 >
                   <div className="flex items-center gap-1.5 py-1 pl-2.5">
                     <ArrowDown className="size-3 text-muted-foreground" />
-                    <span>Sub-issue: {c.identifier}</span>
+                    <span>{t.issues.subIssue}: {c.identifier}</span>
                   </div>
                   <button
                     type="button"
@@ -443,7 +446,7 @@ export function ManualCreatePanel({
                       setChildIssues((prev) => prev.filter((x) => x.id !== c.id))
                     }
                     className="p-1 pr-2 text-muted-foreground hover:text-foreground cursor-pointer"
-                    aria-label={`Remove sub-issue ${c.identifier}`}
+                    aria-label={`${t.issues.removeSubIssue} ${c.identifier}`}
                   >
                     <XIcon className="size-3" />
                   </button>
@@ -455,7 +458,7 @@ export function ManualCreatePanel({
               <DropdownMenu>
                 <DropdownMenuTrigger
                   render={
-                    <PillButton aria-label="More options">
+                    <PillButton aria-label={t.issues.moreOptions}>
                       <MoreHorizontal className="size-3.5" />
                     </PillButton>
                   }
@@ -464,17 +467,17 @@ export function ManualCreatePanel({
                   {parentIssueId && parentIssue ? (
                     <DropdownMenuItem onClick={() => setParentPickerOpen(true)}>
                       <ArrowUp className="h-3.5 w-3.5" />
-                      Parent: {parentIssue.identifier}
+                      {t.issues.parentIssue}: {parentIssue.identifier}
                     </DropdownMenuItem>
                   ) : (
                     <DropdownMenuItem onClick={() => setParentPickerOpen(true)}>
                       <ArrowUp className="h-3.5 w-3.5" />
-                      Set parent issue...
+                      {t.issues.setParentIssue}
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuItem onClick={() => setChildPickerOpen(true)}>
                     <ArrowDown className="h-3.5 w-3.5" />
-                    Add sub-issue...
+                    {t.issues.addSubIssue}
                   </DropdownMenuItem>
                   {parentIssueId && parentIssue && (
                     <>
@@ -484,7 +487,7 @@ export function ManualCreatePanel({
                         onClick={() => setParentIssueId(undefined)}
                       >
                         <XIcon className="h-3.5 w-3.5" />
-                        Remove parent
+                        {t.issues.removeParent}
                       </DropdownMenuItem>
                     </>
                   )}
@@ -497,8 +500,8 @@ export function ManualCreatePanel({
             <IssuePickerModal
               open={parentPickerOpen}
               onOpenChange={setParentPickerOpen}
-              title="Set parent issue"
-              description="Search for an issue to set as the parent of the new issue"
+              title={t.issues.setParentIssue}
+              description={t.issues.searchParentIssue}
               excludeIds={[
                 ...childIssues.map((c) => c.id),
                 ...(parentIssueId ? [parentIssueId] : []),
@@ -510,8 +513,8 @@ export function ManualCreatePanel({
             <IssuePickerModal
               open={childPickerOpen}
               onOpenChange={setChildPickerOpen}
-              title="Add sub-issue"
-              description="Search for an issue to add as a sub-issue of the new issue"
+              title={t.issues.addSubIssue}
+              description={t.issues.searchSubIssue}
               excludeIds={[
                 ...childIssues.map((c) => c.id),
                 ...(parentIssueId ? [parentIssueId] : []),
@@ -534,11 +537,11 @@ export function ManualCreatePanel({
                 <button
                   type="button"
                   onClick={switchToAgent}
-                  title="Switch to create with agent — describe in one line and let the agent file it"
+                  title={t.issues.switchToAgentHint}
                   className="flex shrink-0 items-center gap-1.5 text-xs px-2 py-1 rounded-sm text-muted-foreground hover:text-foreground hover:bg-accent/60 transition-colors cursor-pointer"
                 >
                   <ArrowLeftRight className="size-3.5" />
-                  Switch to Agent
+                  {t.issues.switchToAgent}
                 </button>
                 <label className="flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground cursor-pointer select-none">
                   <Switch
@@ -546,10 +549,10 @@ export function ManualCreatePanel({
                     checked={keepOpen}
                     onCheckedChange={setKeepOpen}
                   />
-                  Create another
+                  {t.issues.createAnother}
                 </label>
                 <Button size="sm" onClick={handleSubmit} disabled={!title.trim() || submitting}>
-                  {submitting ? "Creating..." : "Create Issue"}
+                  {submitting ? t.common.creating : t.issues.createIssue}
                 </Button>
               </div>
             </div>

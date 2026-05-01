@@ -7,6 +7,7 @@ import type { Agent } from "@multica/core/types";
 import { useWorkspaceId } from "@multica/core/hooks";
 import { skillListOptions } from "@multica/core/workspace/queries";
 import { SkillAddDialog } from "../skill-add-dialog";
+import { useAppLocale } from "@multica/i18n";
 
 /**
  * Inline "+ Attach" trigger for the inspector's Skills row. The trigger is
@@ -25,6 +26,7 @@ export function SkillAttach({
   /** When false, hide the attach trigger entirely. */
   canEdit?: boolean;
 }) {
+  const { t } = useAppLocale();
   const wsId = useWorkspaceId();
   const { data: workspaceSkills = [] } = useQuery(skillListOptions(wsId));
   const [open, setOpen] = useState(false);
@@ -41,12 +43,12 @@ export function SkillAttach({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        aria-label="Attach a workspace skill"
-        title="Attach a workspace skill"
+        aria-label={t.agents.attachSkill}
+        title={t.agents.attachSkill}
         className="inline-flex cursor-pointer items-center gap-0.5 rounded-md border border-dashed border-muted-foreground/30 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground/70 transition-colors hover:border-muted-foreground/60 hover:bg-accent/50 hover:text-muted-foreground"
       >
         <Plus className="h-2.5 w-2.5" />
-        Attach
+        {t.agents.attach}
       </button>
       <SkillAddDialog agent={agent} open={open} onOpenChange={setOpen} />
     </>

@@ -63,6 +63,7 @@ import { CapabilityBanner } from "@multica/ui/components/common/capability-banne
 import { readOrigin, totalFileCount, type OriginInfo } from "../lib/origin";
 import { FileTree } from "./file-tree";
 import { FileViewer } from "./file-viewer";
+import { useAppLocale } from "@multica/i18n";
 
 const SKILL_MD = "SKILL.md";
 
@@ -91,6 +92,7 @@ function AddFileInline({
   onAdd: (path: string) => void;
   onCancel: () => void;
 }) {
+  const { t } = useAppLocale();
   const [path, setPath] = useState("");
   const [error, setError] = useState("");
 
@@ -129,7 +131,7 @@ function AddFileInline({
           Add
         </Button>
         <Button type="button" size="xs" variant="ghost" onClick={onCancel}>
-          Cancel
+          {t.common.cancel}
         </Button>
       </div>
     </div>
@@ -233,6 +235,7 @@ function OriginSidebarCard({
 // ---------------------------------------------------------------------------
 
 export function SkillDetailPage({ skillId }: { skillId: string }) {
+  const { t } = useAppLocale();
   const wsId = useWorkspaceId();
   const qc = useQueryClient();
   const paths = useWorkspacePaths();
@@ -532,7 +535,7 @@ export function SkillDetailPage({ skillId }: { skillId: string }) {
             render={<AppLink href={paths.skills()} />}
           >
             <ArrowLeft className="h-3 w-3" />
-            All skills
+            {t.skills.pageTitle}
           </Button>
         </div>
         <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center">
@@ -822,12 +825,12 @@ export function SkillDetailPage({ skillId }: { skillId: string }) {
                   {saving ? (
                     <>
                       <Loader2 className="h-3 w-3 animate-spin" />
-                      Saving…
+                      {t.common.saving}
                     </>
                   ) : (
                     <>
                       <Save className="h-3 w-3" />
-                      Save changes
+                      {t.common.save}
                     </>
                   )}
                 </Button>
@@ -935,7 +938,7 @@ export function SkillDetailPage({ skillId }: { skillId: string }) {
               onClick={() => setConfirmDelete(false)}
               disabled={deleting}
             >
-              Cancel
+              {t.common.cancel}
             </Button>
             <Button
               type="button"
@@ -946,7 +949,7 @@ export function SkillDetailPage({ skillId }: { skillId: string }) {
               {deleting ? (
                 <>
                   <Loader2 className="h-3 w-3 animate-spin" />
-                  Deleting…
+                  {t.common.deleting}
                 </>
               ) : (
                 <>

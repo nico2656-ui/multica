@@ -13,12 +13,14 @@ import {
 } from "@multica/core/workspace/queries";
 import { Button } from "@multica/ui/components/ui/button";
 import { SkillAddDialog } from "../skill-add-dialog";
+import { useAppLocale } from "@multica/i18n";
 
 export function SkillsTab({
   agent,
 }: {
   agent: Agent;
 }) {
+  const { t } = useAppLocale();
   const qc = useQueryClient();
   const wsId = useWorkspaceId();
   // Same query the SkillAddDialog uses (TanStack Query dedupes by key, so
@@ -42,7 +44,7 @@ export function SkillsTab({
       await api.setAgentSkills(agent.id, { skill_ids: newIds });
       qc.invalidateQueries({ queryKey: workspaceKeys.agents(wsId) });
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to remove skill");
+      toast.error(e instanceof Error ? e.message : t.agents.skillRemoveFailed);
     } finally {
       setRemoving(false);
     }
@@ -63,14 +65,14 @@ export function SkillsTab({
           className="shrink-0"
         >
           <Plus className="h-3 w-3" />
-          Add skill
+          {t.agents.addSkill}
         </Button>
       </div>
 
       <div className="flex items-start gap-2 rounded-md border border-info/20 bg-info/5 px-3 py-2.5">
         <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-info" />
         <p className="text-xs text-muted-foreground">
-          Importing creates a workspace copy that your team can edit and reuse.
+          {t.agents.skillsImportHint}
         </p>
       </div>
 
@@ -78,10 +80,10 @@ export function SkillsTab({
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-12">
           <FileText className="h-8 w-8 text-muted-foreground/40" />
           <p className="mt-3 text-sm text-muted-foreground">
-            No skills assigned
+            {t.agents.noSkillsAssigned}
           </p>
           <p className="mt-1 max-w-xs text-center text-xs text-muted-foreground">
-            Add workspace skills to share team knowledge with this agent.
+            {t.agents.addSkillsDesc}
           </p>
           {availableCount > 0 && (
             <Button
@@ -90,7 +92,7 @@ export function SkillsTab({
               className="mt-3"
             >
               <Plus className="h-3 w-3" />
-              Add skill
+              {t.agents.addSkill}
             </Button>
           )}
         </div>

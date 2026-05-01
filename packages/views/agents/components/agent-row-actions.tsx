@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useAppLocale } from "@multica/i18n";
 import type { Agent } from "@multica/core/types";
 import type { AgentPresenceDetail } from "@multica/core/agents";
 import { api } from "@multica/core/api";
@@ -64,6 +65,7 @@ export function AgentRowActions({
   canManage,
   onDuplicate,
 }: AgentRowActionsProps) {
+  const { t } = useAppLocale();
   const wsId = useWorkspaceId();
   const qc = useQueryClient();
 
@@ -93,9 +95,9 @@ export function AgentRowActions({
     try {
       await api.archiveAgent(agent.id);
       invalidateAgents();
-      toast.success("Agent archived");
+      toast.success(t.agents.agentArchived);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to archive agent");
+      toast.error(e instanceof Error ? e.message : t.agents.archiveFailed);
     }
   };
 
@@ -103,27 +105,23 @@ export function AgentRowActions({
     try {
       await api.restoreAgent(agent.id);
       invalidateAgents();
-      toast.success("Agent restored");
+      toast.success(t.agents.agentRestored);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to restore agent");
+      toast.error(e instanceof Error ? e.message : t.agents.restoreFailed);
     }
   };
 
   const handleCancelTasks = async () => {
     try {
       const { cancelled } = await api.cancelAgentTasks(agent.id);
-      // Server broadcasts task:cancelled per row; useRealtimeSync will
-      // invalidate the agent-task-snapshot cache for us. We still kick
-      // agents in case the back-end's ReconcileAgentStatus changed
-      // agent.status.
       invalidateAgents();
       toast.success(
         cancelled === 0
-          ? "No active tasks to cancel"
+          ? t.agents.noTasksToCancel
           : `Cancelled ${cancelled} task${cancelled === 1 ? "" : "s"}`,
       );
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to cancel tasks");
+      toast.error(e instanceof Error ? e.message : t.agents.cancelFailed);
     }
   };
 
@@ -139,7 +137,7 @@ export function AgentRowActions({
             <Button
               variant="ghost"
               size="icon-sm"
-              aria-label="Row actions"
+              aria-label={t.agents.rowActions}
               onClick={(e) => e.stopPropagation()}
               onKeyDown={(e) => e.stopPropagation()}
             />
@@ -159,19 +157,19 @@ export function AgentRowActions({
               onClick={() => setConfirmCancel(true)}
             >
               <Square className="h-3.5 w-3.5" />
-              Cancel all tasks
+              {t.agents.cancelAllTasks}
             </DropdownMenuItem>
           )}
           {showDuplicate && (
             <DropdownMenuItem onClick={() => onDuplicate(agent)}>
               <Copy className="h-3.5 w-3.5" />
-              Duplicate
+              {t.agents.duplicateAgent}
             </DropdownMenuItem>
           )}
           {showRestore && (
             <DropdownMenuItem onClick={handleRestore}>
               <RotateCcw className="h-3.5 w-3.5" />
-              Restore
+              {t.agents.restore}
             </DropdownMenuItem>
           )}
           {showArchive && (
@@ -182,7 +180,7 @@ export function AgentRowActions({
                 onClick={() => setConfirmArchive(true)}
               >
                 <Trash2 className="h-3.5 w-3.5" />
-                Archive
+                {t.agents.archive}
               </DropdownMenuItem>
             </>
           )}
@@ -202,7 +200,7 @@ export function AgentRowActions({
           >
             <AlertDialogHeader>
               <AlertDialogTitle>
-                Cancel all tasks for &ldquo;{agent.name}&rdquo;?
+                {t.agents.cancelTasksTitle?.replace("{name}", agent.name) ?? `Cancel all tasks for "${agent.name}"?`}
               </AlertDialogTitle>
               <AlertDialogDescription>
                 {describeCancelImpact(runningCount, queuedCount)}
@@ -215,7 +213,7 @@ export function AgentRowActions({
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Keep them</AlertDialogCancel>
+              <AlertDialogCancel>{t.agents.keepThem}</AlertDialogCancel>
               <AlertDialogAction
                 variant="destructive"
                 onClick={() => {
@@ -223,7 +221,7 @@ export function AgentRowActions({
                   void handleCancelTasks();
                 }}
               >
-                Cancel all tasks
+                {t.agents.cancelAllTasks}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -245,7 +243,7 @@ export function AgentRowActions({
                 </div>
                 <div className="flex-1">
                   <AlertDialogTitle>
-                    Archive &ldquo;{agent.name}&rdquo;?
+                    {t.agents.archiveAgentTitle?.replace("{name}", agent.name) ?? `Archive "$agent.name"?`}
                   </AlertDialogTitle>
                   <AlertDialogDescription>
                     The agent won&apos;t be assignable or mentionable, and any
@@ -256,7 +254,7 @@ export function AgentRowActions({
               </div>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel>{t.common.cancel}</AlertDialogCancel>
               <AlertDialogAction
                 variant="destructive"
                 onClick={() => {
@@ -264,7 +262,7 @@ export function AgentRowActions({
                   void handleArchive();
                 }}
               >
-                Archive
+                {t.agents.archive}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

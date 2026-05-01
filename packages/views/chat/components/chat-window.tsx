@@ -45,11 +45,13 @@ import { ChatResizeHandles } from "./chat-resize-handles";
 import { useChatResize } from "./use-chat-resize";
 import { createLogger } from "@multica/core/logger";
 import type { Agent, ChatMessage, ChatPendingTask, ChatSession } from "@multica/core/types";
+import { useAppLocale } from "@multica/i18n";
 
 const uiLogger = createLogger("chat.ui");
 const apiLogger = createLogger("chat.api");
 
 export function ChatWindow() {
+  const { t } = useAppLocale();
   const wsId = useWorkspaceId();
   const isOpen = useChatStore((s) => s.isOpen);
   const activeSessionId = useChatStore((s) => s.activeSessionId);
@@ -375,7 +377,7 @@ export function ChatWindow() {
             >
               <Plus />
             </TooltipTrigger>
-            <TooltipContent side="top">New chat</TooltipContent>
+            <TooltipContent side="top">{t.chat.newConversation}</TooltipContent>
           </Tooltip>
           <SessionDropdown
             sessions={sessions}
@@ -736,6 +738,7 @@ function EmptyState({
   agentName?: string;
   onPickPrompt: (text: string) => void;
 }) {
+  const { t } = useAppLocale();
   // First-time experience: the user has never started a chat in this
   // workspace. Educate before suggesting actions — starter prompts
   // presume the user already knows what chat is for.
@@ -747,7 +750,7 @@ function EmptyState({
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 py-8">
         <div className="text-center space-y-3">
-          <h3 className="text-base font-semibold">Chat with your agents</h3>
+          <h3 className="text-base font-semibold">{t.chat.title}</h3>
           <p className="text-sm text-muted-foreground">
             ✨ They know your workspace —{" "}
             <span className="font-medium text-foreground">
@@ -770,7 +773,7 @@ function EmptyState({
         <h3 className="text-base font-semibold">
           {agentName ? `Hi, I'm ${agentName}` : "Welcome to Multica"}
         </h3>
-        <p className="text-sm text-muted-foreground">Try asking</p>
+        <p className="text-sm text-muted-foreground">{t.chat.askAnything}</p>
       </div>
       <div className="w-full max-w-xs space-y-2">
         {STARTER_PROMPTS.map((prompt) => (
