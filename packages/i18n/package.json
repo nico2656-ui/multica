@@ -1,0 +1,27 @@
+{
+  "name": "@multica/i18n",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint ."
+  },
+  "exports": {
+    ".": "./index.ts",
+    "./context": "./context.tsx",
+    "./types": "./types.ts",
+    "./en": "./en.ts",
+    "./zh": "./zh.ts"
+  },
+  "dependencies": {
+    "@multica/core": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": "catalog:"
+  },
+  "devDependencies": {
+    "@multica/tsconfig": "workspace:*",
+    "typescript": "catalog:"
+  }
+}
