@@ -8,10 +8,10 @@ import { useHasOnboarded } from "@multica/core/paths";
 import { ThemeProvider } from "@multica/ui/components/common/theme-provider";
 import { MulticaIcon } from "@multica/ui/components/common/multica-icon";
 import { Toaster } from "@multica/ui/components/ui/sonner";
+import { AppLocaleProvider } from "@multica/i18n";
 import { DesktopLoginPage } from "./pages/login";
 import { DesktopShell } from "./components/desktop-layout";
 import { PageviewTracker } from "./components/pageview-tracker";
-import { UpdateNotification } from "./components/update-notification";
 import { useTabStore } from "./stores/tab-store";
 import { useWindowOverlayStore } from "./stores/window-overlay-store";
 import { useDaemonIPCBridge } from "./platform/daemon-ipc-bridge";
@@ -260,16 +260,17 @@ export default function App() {
   );
   return (
     <ThemeProvider>
-      <CoreProvider
-        apiBaseUrl={import.meta.env.VITE_API_URL || "http://localhost:8080"}
-        wsUrl={import.meta.env.VITE_WS_URL || "ws://localhost:8080/ws"}
-        onLogout={handleDaemonLogout}
-        identity={identity}
-      >
-        <AppContent />
-      </CoreProvider>
+      <AppLocaleProvider>
+        <CoreProvider
+          apiBaseUrl={import.meta.env.VITE_API_URL || "http://localhost:8080"}
+          wsUrl={import.meta.env.VITE_WS_URL || "ws://localhost:8080/ws"}
+          onLogout={handleDaemonLogout}
+          identity={identity}
+        >
+          <AppContent />
+        </CoreProvider>
+      </AppLocaleProvider>
       <Toaster />
-      <UpdateNotification />
     </ThemeProvider>
   );
 }
