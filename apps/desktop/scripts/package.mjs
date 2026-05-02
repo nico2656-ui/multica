@@ -31,6 +31,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const here = dirname(fileURLToPath(import.meta.url));
 const desktopRoot = resolve(here, "..");
 const bundleCliScript = resolve(here, "bundle-cli.mjs");
+const bundleServerScript = resolve(here, "bundle-server.mjs");
 
 const PLATFORM_CONFIG = {
   mac: {
@@ -386,6 +387,17 @@ function main() {
         "--target-arch",
         target.arch,
       ],
+      {
+        stdio: "inherit",
+        cwd: desktopRoot,
+      },
+    );
+
+    // Bundle the Go server and migrate binaries AFTER bundle-cli
+    // (bundle-cli deletes resources/bin/, so we rebuild server/migrate here).
+    execFileSync(
+      "node",
+      [bundleServerScript],
       {
         stdio: "inherit",
         cwd: desktopRoot,
