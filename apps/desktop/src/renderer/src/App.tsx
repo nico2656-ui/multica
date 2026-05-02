@@ -16,10 +16,184 @@ import { useTabStore } from "./stores/tab-store";
 import { useWindowOverlayStore } from "./stores/window-overlay-store";
 import { useDaemonIPCBridge } from "./platform/daemon-ipc-bridge";
 
+// --- Embedded server startup screen ---
+const STAGE_ORDER = [
+  "checking",
+  "init_pg",
+  "starting_pg",
+  "creating_db",
+  "running_migrations",
+  "starting_server",
+  "logging_in",
+  "ready",
+] as const;
+
+const STAGE_LABELS: Record<string, string> = {
+  checking: "检查环境",
+  init_pg: "初始化数据库",
+  starting_pg: "启动 PostgreSQL",
+  creating_db: "创建数据库",
+  running_migrations: "运行数据迁移",
+  starting_server: "启动后端服务",
+  logging_in: "自动登录",
+  ready: "就绪",
+  error: "出错",
+};
+
+function stageIndex(stage: string): number {
+  const idx = STAGE_ORDER.indexOf(stage as typeof STAGE_ORDER[number]);
+  return idx < 0 ? -1 : idx;
+}
+
+function stageProgress(stage: string): number {
+  const idx = stageIndex(stage);
+  if (idx < 0) return 0;
+  return Math.round(((idx + 1) / STAGE_ORDER.length) * 100);
+}
+
+function formatElapsed(ms: number): string {
+  const s = Math.floor(ms / 1000);
+  if (s < 60) return `${s}s`;
+  const m = Math.floor(s / 60);
+  const rs = s % 60;
+  return `${m}m${rs}s`;
+}
+
+function StartupScreen() {
+  const [progress, setProgress] = useState<{ stage: string; message: string; log: string }>({
+    stage: "checking",
+    message: "正在连接后台服务...",
+    log: "",
+  });
+  const [logs, setLogs] = useState<string[]>([]);
+  const [elapsed, setElapsed] = useState(0);
+  const [serverReady, setServerReady] = useState(false);
+  const startRef = useRef(Date.now());
+
+  // Poll for progress continuously (covers the gap before IPC stream starts).
+  useEffect(() => {
+    let stopped = false;
+    let lastStage = "";
+    async function poll() {
+      while (!stopped) {
+        try {
+          const p = await window.desktopAPI.getServerProgress();
+          if (!stopped && p && p.stage) {
+            if (p.stage === "ready") setServerReady(true);
+            setProgress((prev) => {
+              if (prev.stage !== p.stage || prev.message !== p.message) {
+                const time = new Date().toLocaleTimeString();
+                setLogs((prevLogs) => [...prevLogs.slice(-30), `[${time}] ${p.message}${p.log ? " — " + p.log : ""}`]);
+                return p;
+              }
+              return prev;
+            });
+            lastStage = p.stage;
+          }
+        } catch { /* ignore */ }
+        await new Promise((r) => setTimeout(r, 1500));
+      }
+    }
+    poll();
+    return () => { stopped = true; };
+  }, []);
+
+  // Listen for live progress events
+  useEffect(() => {
+    return window.desktopAPI.onServerProgress((p) => {
+      setProgress(p);
+      if (p.stage === "ready") setServerReady(true);
+      const time = new Date().toLocaleTimeString();
+      setLogs((prev) => [...prev.slice(-30), `[${time}] ${p.message}${p.log ? " — " + p.log : ""}`]);
+    });
+  }, []);
+
+  // Elapsed time ticker (stops when server is ready or errored)
+  useEffect(() => {
+    if (progress.stage === "ready" || progress.stage === "error") return;
+    const id = setInterval(() => setElapsed(Date.now() - startRef.current), 1000);
+    return () => clearInterval(id);
+  }, [progress.stage]);
+
+  const currentIdx = stageIndex(progress.stage);
+  const isError = progress.stage === "error";
+
+  return (
+    <div className="flex h-screen flex-col items-center justify-center bg-background px-8">
+      <div className="w-full max-w-lg space-y-5">
+        {/* Logo */}
+        <div className="flex justify-center">
+          <MulticaIcon className="size-10" />
+        </div>
+
+        {/* Title + elapsed */}
+        <div className="text-center space-y-1">
+          <h1 className="text-lg font-semibold text-foreground">Multica</h1>
+          <p className={`text-sm ${isError ? "text-red-500" : "text-muted-foreground"}`}>
+            {progress.message}
+          </p>
+          <p className="text-xs text-muted-foreground/50">
+            已运行 {formatElapsed(elapsed)}
+          </p>
+        </div>
+
+        {/* Progress bar */}
+        <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+          <div
+            className={`h-full rounded-full transition-all duration-700 ${isError ? "bg-red-500" : "bg-primary"}`}
+            style={{ width: `${stageProgress(progress.stage)}%` }}
+          />
+        </div>
+
+        {/* Stage list */}
+        <div className="space-y-1.5">
+          {STAGE_ORDER.map((s, i) => {
+            const done = i < currentIdx;
+            const active = i === currentIdx;
+            const waiting = i > currentIdx;
+            return (
+              <div key={s} className="flex items-center gap-2 text-xs">
+                <span
+                  className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] ${
+                    done ? "bg-primary text-primary-foreground" :
+                    active ? "bg-primary/20 text-primary animate-pulse" :
+                    "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  {done ? "✓" : active ? "●" : i + 1}
+                </span>
+                <span className={
+                  done ? "text-foreground" :
+                  active ? "text-primary font-medium" :
+                  "text-muted-foreground/40"
+                }>
+                  {STAGE_LABELS[s]}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Log area */}
+        {logs.length > 0 && (
+          <div className="max-h-36 overflow-y-auto rounded-md border bg-muted/30 p-2 font-mono text-[11px] leading-relaxed">
+            {logs.map((line, i) => (
+              <p key={i} className="text-muted-foreground">
+                {line}
+              </p>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 
 function AppContent() {
   const user = useAuthStore((s) => s.user);
   const isLoading = useAuthStore((s) => s.isLoading);
+  const isEmbedded = window.desktopAPI.appInfo.embeddedServer;
   const qc = useQueryClient();
   // Deep-link login runs loginWithToken → syncToken → listWorkspaces →
   // setQueryData sequentially. loginWithToken sets user+isLoading=false
@@ -206,6 +380,10 @@ function AppContent() {
       sessionStartedEmptyRef.current = false;
     }
   }, [user, workspaceListFetched, wsCount]);
+
+  if (isEmbedded && !serverReady) {
+    return <StartupScreen />;
+  }
 
   if (isLoading || bootstrapping) {
     return (

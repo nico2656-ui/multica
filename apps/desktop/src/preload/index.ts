@@ -5,20 +5,21 @@ import { electronAPI } from "@electron-toolkit/preload";
 // can pass it into CoreProvider during the initial render — the alternative
 // (async ipc.invoke) would race the ApiClient construction in initCore and
 // the first few HTTP requests would go out without X-Client-Version/OS.
-function fetchAppInfo(): { version: string; os: "macos" | "windows" | "linux" | "unknown" } {
+function fetchAppInfo(): { version: string; os: "macos" | "windows" | "linux" | "unknown"; embeddedServer: boolean } {
   try {
     const info = ipcRenderer.sendSync("app:get-info") as
-      | { version: string; os: "macos" | "windows" | "linux" | "unknown" }
+      | { version: string; os: "macos" | "windows" | "linux" | "unknown"; embeddedServer?: boolean }
       | undefined;
-    if (info && typeof info.version === "string" && typeof info.os === "string") return info;
+    if (info && typeof info.version === "string" && typeof info.os === "string") {
+      return { ...info, embeddedServer: info.embeddedServer ?? false };
+    }
   } catch {
     // fall through
   }
-  // Fallback: derive OS from process.platform; version unknown.
   const p = process.platform;
   const os: "macos" | "windows" | "linux" | "unknown" =
     p === "darwin" ? "macos" : p === "win32" ? "windows" : p === "linux" ? "linux" : "unknown";
-  return { version: "unknown", os };
+  return { version: "unknown", os, embeddedServer: false };
 }
 
 const appInfo = fetchAppInfo();
@@ -27,6 +28,15 @@ const desktopAPI = {
   /** App version + normalized OS. Read once at preload time so the renderer
    *  can use it synchronously when initializing the API client. */
   appInfo,
+  /** Listen for embedded server startup progress */
+  onServerProgress: (callback: (progress: { stage: string; message: string; log: string }) => void) => {
+    const handler = (_: unknown, progress: { stage: string; message: string; log: string }) => callback(progress);
+    ipcRenderer.on("server:progress", handler);
+    return () => ipcRenderer.removeListener("server:progress", handler);
+  },
+  /** Poll current server startup progress (returns latest state immediately) */
+  getServerProgress: (): Promise<{ stage: string; message: string; log: string }> =>
+    ipcRenderer.invoke("server:get-progress"),
   /** Listen for auth token delivered via deep link */
   onAuthToken: (callback: (token: string) => void) => {
     const handler = (_event: Electron.IpcRendererEvent, token: string) =>
@@ -149,6 +159,16 @@ const daemonAPI = {
     ipcRenderer.invoke("daemon:open-log-file"),
 };
 
+const selfUpdateAPI = {
+  getRepoPath: (): Promise<{ path: string | null }> =>
+    ipcRenderer.invoke("update:get-repo-path"),
+  setRepoPath: (path: string): Promise<{ success: boolean; error?: string }> =>
+    ipcRenderer.invoke("update:set-repo-path", path),
+  rebuild: (): Promise<{ success: boolean; error?: string }> =>
+    ipcRenderer.invoke("update:rebuild"),
+  restart: () => ipcRenderer.invoke("update:restart"),
+};
+
 const updaterAPI = {
   onUpdateAvailable: (callback: (info: { version: string; releaseNotes?: string }) => void) => {
     const handler = (_: unknown, info: { version: string; releaseNotes?: string }) => callback(info);
@@ -178,6 +198,7 @@ if (process.contextIsolated) {
   contextBridge.exposeInMainWorld("desktopAPI", desktopAPI);
   contextBridge.exposeInMainWorld("daemonAPI", daemonAPI);
   contextBridge.exposeInMainWorld("updater", updaterAPI);
+  contextBridge.exposeInMainWorld("selfUpdate", selfUpdateAPI);
 } else {
   // @ts-expect-error - fallback for non-isolated context
   window.electron = electronAPI;
@@ -187,4 +208,6 @@ if (process.contextIsolated) {
   window.daemonAPI = daemonAPI;
   // @ts-expect-error - fallback for non-isolated context
   window.updater = updaterAPI;
+  // @ts-expect-error - fallback for non-isolated context
+  window.selfUpdate = selfUpdateAPI;
 }

@@ -32,6 +32,12 @@ interface DesktopAPI {
       issueKey: string;
     }) => void,
   ) => () => void;
+  /** True if embedded PostgreSQL is bundled (self-hosted build). */
+  embeddedServer: boolean;
+  /** Listen for embedded server startup progress. Returns unsubscribe. */
+  onServerProgress: (callback: (progress: { stage: string; message: string; log: string }) => void) => () => void;
+  /** Poll current server startup progress. */
+  getServerProgress: () => Promise<{ stage: string; message: string; log: string }>;
 }
 
 interface DaemonStatus {
@@ -71,6 +77,13 @@ interface DaemonAPI {
   openLogFile: () => Promise<{ success: boolean; error?: string }>;
 }
 
+interface SelfUpdateAPI {
+  getRepoPath: () => Promise<{ path: string | null }>;
+  setRepoPath: (path: string) => Promise<{ success: boolean; error?: string }>;
+  rebuild: () => Promise<{ success: boolean; error?: string }>;
+  restart: () => Promise<void>;
+}
+
 interface UpdaterAPI {
   onUpdateAvailable: (callback: (info: { version: string; releaseNotes?: string }) => void) => () => void;
   onDownloadProgress: (callback: (progress: { percent: number }) => void) => () => void;
@@ -89,6 +102,7 @@ declare global {
     desktopAPI: DesktopAPI;
     daemonAPI: DaemonAPI;
     updater: UpdaterAPI;
+    selfUpdate: SelfUpdateAPI;
   }
 }
 

@@ -1,10 +1,13 @@
 import { app, BrowserWindow, ipcMain, nativeImage, Notification } from "electron";
 import { homedir } from "os";
 import { join } from "path";
+import { existsSync } from "fs";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import fixPath from "fix-path";
 import { setupAutoUpdater } from "./updater";
 import { setupDaemonManager } from "./daemon-manager";
+import { setupServerManager, stopAllServers, getLatestProgress } from "./server-manager";
+import { setupSelfUpdate, applyPendingUpdate } from "./self-update";
 import { openExternalSafely } from "./external-url";
 import { installContextMenu } from "./context-menu";
 import { getAppVersion } from "./app-version";
@@ -188,6 +191,9 @@ if (!gotTheLock) {
   });
 
   app.whenReady().then(() => {
+    // Apply any pending code update before loading the app
+    applyPendingUpdate();
+
     electronApp.setAppUserModelId(
       is.dev ? "ai.multica.desktop.dev" : "ai.multica.desktop",
     );
@@ -220,7 +226,11 @@ if (!gotTheLock) {
     ipcMain.on("app:get-info", (event) => {
       const p = process.platform;
       const os = p === "darwin" ? "macos" : p === "win32" ? "windows" : p === "linux" ? "linux" : "unknown";
-      event.returnValue = { version: getAppVersion(), os };
+      const pgsqlPath = app.isPackaged
+        ? join(app.getAppPath(), "resources", "pgsql", "bin", "pg_ctl.exe").replace("app.asar", "app.asar.unpacked")
+        : join(app.getAppPath(), "resources", "pgsql", "bin", "pg_ctl.exe");
+      const embedded = existsSync(pgsqlPath);
+      event.returnValue = { version: getAppVersion(), os, embeddedServer: embedded };
     });
 
     // IPC: toggle immersive mode — hides the macOS traffic lights so full-screen
@@ -289,10 +299,20 @@ if (!gotTheLock) {
       }
     });
 
+    // Renderer polls this to get the latest server startup progress.
+    // Returns null if no progress has been reported yet.
+    ipcMain.handle("server:get-progress", () => getLatestProgress());
+
     createWindow();
 
     setupAutoUpdater(() => mainWindow);
+
+    // Start embedded PostgreSQL + Go server immediately.
+    // Progress is stored in memory; renderer polls server:get-progress IPC.
+    void setupServerManager(() => mainWindow);
+
     setupDaemonManager(() => mainWindow);
+    setupSelfUpdate(() => mainWindow);
 
     // macOS: deep link arrives via open-url event
     app.on("open-url", (_event, url) => {
@@ -318,5 +338,15 @@ if (!gotTheLock) {
 }
 
 app.on("window-all-closed", () => {
+  // On macOS, keep the app alive (standard behavior — Cmd+W shouldn't quit).
+  // On Windows/Linux, quit — but cleanup happens in before-quit below.
   if (process.platform !== "darwin") app.quit();
+});
+
+// will-quit fires after all before-quit handlers are done and quit is imminent.
+// Does NOT prevent quit — daemon-manager owns the prevention logic. Server
+// cleanup is a fast synchronous kill on this path; graceful shutdown happens
+// in before-quit via daemon-manager's autoStop flow.
+app.on("will-quit", () => {
+  stopAllServers();
 });
