@@ -25,7 +25,9 @@
 // version-derivation logic without shelling out.
 
 import { execFileSync, spawnSync, execSync } from "node:child_process";
-import { delimiter, dirname, resolve } from "node:path";
+import { existsSync } from "node:fs";
+import { delimiter, dirname, join, resolve } from "node:path";
+import { homedir } from "node:os";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -395,12 +397,27 @@ function main() {
 
     // Bundle the Go server and migrate binaries AFTER bundle-cli
     // (bundle-cli deletes resources/bin/, so we rebuild server/migrate here).
+    // Inject Go into PATH so bundle-server can rebuild from source.
+    const bundleEnv = envWithLocalBins();
+    // Try to find Go binary and inject into PATH
+    const goCandidates = [
+      join(process.env.GOPATH || join(homedir(), "go"), "bin"),
+      "/c/Users/10584/go-install/go/bin",
+      "/usr/local/go/bin",
+    ];
+    for (const dir of goCandidates) {
+      if (existsSync(join(dir, "go.exe")) || existsSync(join(dir, "go"))) {
+        bundleEnv.PATH = `${dir};${bundleEnv.PATH}`;
+        break;
+      }
+    }
     execFileSync(
       "node",
       [bundleServerScript],
       {
         stdio: "inherit",
         cwd: desktopRoot,
+        env: bundleEnv,
       },
     );
 

@@ -293,6 +293,7 @@ func main() {
 	taskSvc := service.NewTaskService(queries, pool, hub, bus, daemonWakeup)
 	autopilotSvc := service.NewAutopilotService(queries, pool, bus, taskSvc)
 	registerAutopilotListeners(bus, autopilotSvc)
+		registerEventAutopilotListeners(bus, pool, queries, autopilotSvc)
 
 	// Start background sweeper to mark stale runtimes as offline.
 	go runRuntimeSweeper(sweepCtx, queries, taskSvc, bus)

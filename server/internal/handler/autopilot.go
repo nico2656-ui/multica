@@ -151,17 +151,21 @@ type UpdateAutopilotRequest struct {
 }
 
 type CreateAutopilotTriggerRequest struct {
-	Kind           string  `json:"kind"`
-	CronExpression *string `json:"cron_expression"`
-	Timezone       *string `json:"timezone"`
-	Label          *string `json:"label"`
+	Kind           string           `json:"kind"`
+	CronExpression *string          `json:"cron_expression"`
+	Timezone       *string          `json:"timezone"`
+	Label          *string          `json:"label"`
+	EventName      *string          `json:"event_name"`
+	Conditions     *json.RawMessage `json:"conditions"`
 }
 
 type UpdateAutopilotTriggerRequest struct {
-	Enabled        *bool   `json:"enabled"`
-	CronExpression *string `json:"cron_expression"`
-	Timezone       *string `json:"timezone"`
-	Label          *string `json:"label"`
+	Enabled        *bool            `json:"enabled"`
+	CronExpression *string          `json:"cron_expression"`
+	Timezone       *string          `json:"timezone"`
+	Label          *string          `json:"label"`
+	EventName      *string          `json:"event_name"`
+	Conditions     *json.RawMessage `json:"conditions"`
 }
 
 // ── Handlers ────────────────────────────────────────────────────────────────
@@ -438,8 +442,8 @@ func (h *Handler) CreateAutopilotTrigger(w http.ResponseWriter, r *http.Request)
 		writeError(w, http.StatusBadRequest, "kind is required")
 		return
 	}
-	if req.Kind != "schedule" && req.Kind != "webhook" && req.Kind != "api" {
-		writeError(w, http.StatusBadRequest, "kind must be schedule, webhook, or api")
+	if req.Kind != "schedule" && req.Kind != "webhook" && req.Kind != "api" && req.Kind != "event" {
+		writeError(w, http.StatusBadRequest, "kind must be schedule, webhook, api, or event")
 		return
 	}
 	if req.Kind == "schedule" && (req.CronExpression == nil || *req.CronExpression == "") {

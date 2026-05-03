@@ -62,10 +62,11 @@ WHERE id = $1;
 -- name: CreateAutopilotTrigger :one
 INSERT INTO autopilot_trigger (
     autopilot_id, kind, enabled, cron_expression, timezone,
-    next_run_at, webhook_token, label
+    next_run_at, webhook_token, label, event_name, conditions
 ) VALUES (
     $1, $2, $3, sqlc.narg('cron_expression'), sqlc.narg('timezone'),
-    sqlc.narg('next_run_at'), sqlc.narg('webhook_token'), sqlc.narg('label')
+    sqlc.narg('next_run_at'), sqlc.narg('webhook_token'), sqlc.narg('label'),
+    sqlc.narg('event_name'), sqlc.narg('conditions')
 ) RETURNING *;
 
 -- name: UpdateAutopilotTrigger :one
@@ -75,6 +76,8 @@ UPDATE autopilot_trigger SET
     timezone = COALESCE(sqlc.narg('timezone'), timezone),
     next_run_at = sqlc.narg('next_run_at'),
     label = COALESCE(sqlc.narg('label'), label),
+    event_name = COALESCE(sqlc.narg('event_name'), event_name),
+    conditions = COALESCE(sqlc.narg('conditions')::jsonb, conditions),
     updated_at = now()
 WHERE id = $1
 RETURNING *;
@@ -177,6 +180,15 @@ UPDATE autopilot_run
 SET status = 'failed', completed_at = now(), failure_reason = 'linked issue was deleted'
 WHERE issue_id = $1
   AND status IN ('issue_created', 'running');
+
+-- name: ListEventTriggers :many
+-- Finds all active event triggers subscribed to a given event name.
+SELECT autopilot_trigger.* FROM autopilot_trigger
+JOIN autopilot ON autopilot.id = autopilot_trigger.autopilot_id
+WHERE autopilot_trigger.kind = 'event'
+  AND autopilot_trigger.enabled = true
+  AND autopilot_trigger.event_name = $1
+  AND autopilot.status = 'active';
 
 -- =====================
 -- Scheduler Recovery

@@ -2,6 +2,21 @@ import { execSync } from "node:child_process";
 import { cpSync, mkdirSync, rmSync, existsSync } from "node:fs";
 import { join, resolve } from "node:path";
 
+function hasGo() {
+  try {
+    execSync("go version", { stdio: "pipe" });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+if (!hasGo()) {
+  console.log("[bundle-server] `go` not found in PATH — skipping Go build.");
+  console.log("[bundle-server] Desktop will use prebuilt binaries in resources/bin/.");
+  process.exit(0);
+}
+
 const root = resolve(import.meta.dirname, "../../..");
 const serverDir = join(root, "server");
 const binDir = join(root, "apps/desktop/resources/bin");

@@ -114,7 +114,7 @@ func main() {
 		if direction == "up" {
 			_, err = pool.Exec(ctx, "INSERT INTO schema_migrations (version) VALUES ($1)", version)
 		} else {
-			_, err = pool.Exec(ctx, "DELETE FROM schema_migrations WHERE version = $1)", version)
+			_, err = pool.Exec(ctx, "DELETE FROM schema_migrations WHERE version = $1", version)
 		}
 		if err != nil {
 			slog.Error("failed to record migration", "version", version, "error", err)
