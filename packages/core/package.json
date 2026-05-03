@@ -15,6 +15,7 @@
     "./api": "./api/index.ts",
     "./api/client": "./api/client.ts",
     "./api/ws-client": "./api/ws-client.ts",
+    "./agent-template": "./agent-template/index.ts",
     "./config": "./config/index.ts",
     "./auth": "./auth/index.ts",
     "./workspace": "./workspace/index.ts",

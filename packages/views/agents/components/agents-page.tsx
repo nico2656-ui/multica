@@ -281,22 +281,27 @@ export function AgentsPage() {
     if (view === "archived" && archivedCount === 0) setView("active");
   }, [view, archivedCount]);
 
-  const handleCreate = async (data: CreateAgentRequest) => {
+  const handleCreate = async (data: CreateAgentRequest, skillNames?: string[]) => {
     const agent = await api.createAgent(data);
     // When duplicating, carry the source agent's skill assignments over.
-    // Skills aren't part of CreateAgentRequest (they're managed via
-    // setAgentSkills) so the create endpoint can't take them inline; we
-    // do a follow-up call. Failure here doesn't abort the duplicate —
-    // the agent already exists and the user can re-attach skills from
-    // the detail page.
     if (duplicateTemplate?.skills.length) {
       try {
         await api.setAgentSkills(agent.id, {
           skill_ids: duplicateTemplate.skills.map((s) => s.id),
         });
-      } catch {
-        // Surfaced softly; the agent itself is fine.
-      }
+      } catch { /* agent exists, retry manually */ }
+    }
+    // When importing from template, match skills by name
+    if (skillNames && skillNames.length > 0) {
+      try {
+        const allSkills = await api.listSkills();
+        const matched = allSkills.filter((s) => skillNames.includes(s.name));
+        if (matched.length > 0) {
+          await api.setAgentSkills(agent.id, {
+            skill_ids: matched.map((s) => s.id),
+          });
+        }
+      } catch { /* non-fatal */ }
     }
     setShowCreate(false);
     setDuplicateTemplate(null);

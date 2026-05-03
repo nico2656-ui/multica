@@ -57,11 +57,17 @@ const pendingDir = join(app.getPath("userData"), "pending-update");
 
 function sendUpdateProgress(win: BrowserWindow | null, msg: string): void {
   console.log("[update]", msg);
-  win?.webContents.send("server:progress", {
-    stage: "ready",
-    message: `[更新] ${msg}`,
-    log: "",
+  try {
+    if (win && !win.isDestroyed()) {
+      win.webContents.send("server:progress", {
+        stage: "ready",
+        message: `[更新] ${msg}`,
+        log: "",
   });
+    }
+  } catch {
+    // Window destroyed during restart — ignore
+  }
 }
 
 function spawnAsync(cmd: string, args: string[], cwd: string): Promise<string> {
@@ -100,7 +106,11 @@ export function applyPendingUpdate(): void {
     }
   }
 
-  rmSync(pendingDir, { recursive: true, force: true });
+  try {
+    rmSync(pendingDir, { recursive: true, force: true });
+  } catch (err) {
+    console.warn("[update] Could not clean pending-update dir:", err);
+  }
   console.log("[update] Pending update applied");
 }
 
@@ -161,7 +171,8 @@ export function setupSelfUpdate(getMainWindow: () => BrowserWindow | null): void
 
       // Step 5: prepare pending update
       sendUpdateProgress(win, "准备更新文件...");
-      mkdirSync(pendingDir, { recursive: true, force: true });
+      try { rmSync(pendingDir, { recursive: true, force: true }); } catch {}
+      mkdirSync(pendingDir, { recursive: true });
 
       // Build app.asar from out/
       sendUpdateProgress(win, "打包 app.asar...");

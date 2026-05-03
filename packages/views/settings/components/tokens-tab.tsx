@@ -54,7 +54,7 @@ export function TokensTab() {
       const list = await api.listPersonalAccessTokens();
       setTokens(list);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to load tokens");
+      toast.error(e instanceof Error ? e.message : t.settings.tokenLoadFailed);
     } finally {
       setTokensLoading(false);
     }
@@ -72,7 +72,7 @@ export function TokensTab() {
       setTokenExpiry("90");
       await loadTokens();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to create token");
+      toast.error(e instanceof Error ? e.message : t.settings.tokenCreateFailed);
     } finally {
       setTokenCreating(false);
     }
@@ -83,9 +83,9 @@ export function TokensTab() {
     try {
       await api.revokePersonalAccessToken(id);
       await loadTokens();
-      toast.success("Token revoked");
+      toast.success(t.settings.tokenRevoked);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to revoke token");
+      toast.error(e instanceof Error ? e.message : t.settings.tokenRevokeFailed);
     } finally {
       setTokenRevoking(null);
     }
@@ -109,14 +109,14 @@ export function TokensTab() {
         <Card>
           <CardContent className="space-y-3">
             <p className="text-xs text-muted-foreground">
-              Personal access tokens allow the CLI and external integrations to authenticate with your account.
+              {t.settings.tokenDescription}
             </p>
             <div className="grid gap-3 sm:grid-cols-[1fr_120px_auto]">
               <Input
                 type="text"
                 value={tokenName}
                 onChange={(e) => setTokenName(e.target.value)}
-                placeholder="Token name (e.g. My CLI)"
+                placeholder={t.settings.tokenNamePlaceholder}
               />
               <Select value={tokenExpiry} onValueChange={(v) => { if (v) setTokenExpiry(v); }}>
                 <SelectTrigger size="sm"><SelectValue /></SelectTrigger>
@@ -188,7 +188,7 @@ export function TokensTab() {
           <AlertDialogHeader>
             <AlertDialogTitle>{t.settings.revokeToken}</AlertDialogTitle>
             <AlertDialogDescription>
-              This token will be permanently revoked and can no longer be used. This cannot be undone.
+              {t.settings.tokenRevokeDesc}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -211,7 +211,7 @@ export function TokensTab() {
           <DialogHeader>
             <DialogTitle>{t.settings.tokenCreated}</DialogTitle>
             <DialogDescription>
-              Copy your personal access token now. You won&apos;t be able to see it again.
+              {t.settings.tokenCreatedDesc}
             </DialogDescription>
           </DialogHeader>
           <div className="flex items-center gap-2">
@@ -226,11 +226,11 @@ export function TokensTab() {
                   </Button>
                 }
               />
-              <TooltipContent>Copy token</TooltipContent>
+              <TooltipContent>{t.settings.tokenCopyTooltip}</TooltipContent>
             </Tooltip>
           </div>
           <DialogFooter>
-            <Button onClick={() => { setNewToken(null); setTokenCopied(false); }}>Done</Button>
+            <Button onClick={() => { setNewToken(null); setTokenCopied(false); }}>{t.settings.tokenDone}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { Cloud, ChevronDown, Globe, Lock, Loader2 } from "lucide-react";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { Cloud, ChevronDown, Globe, Lock, Loader2, Upload } from "lucide-react";
+import { parseAgentMarkdown } from "@multica/core/agent-template";
 import { ProviderLogo } from "../../runtimes/components/provider-logo";
 import { ActorAvatar } from "../../common/actor-avatar";
 import { ModelDropdown } from "./model-dropdown";
@@ -54,7 +55,7 @@ export function CreateAgentDialog({
   currentUserId: string | null;
   template?: Agent | null;
   onClose: () => void;
-  onCreate: (data: CreateAgentRequest) => Promise<void>;
+  onCreate: (data: CreateAgentRequest, skillNames?: string[]) => Promise<void>;
 }) {
   const { t } = useAppLocale();
   const isDuplicate = !!template;
@@ -93,6 +94,34 @@ export function CreateAgentDialog({
   const [selectedRuntimeId, setSelectedRuntimeId] = useState(
     template?.runtime_id ?? filteredRuntimes[0]?.id ?? "",
   );
+
+  // Template import
+  const [importedInstructions, setImportedInstructions] = useState<string | null>(null);
+  const [importedSkillNames, setImportedSkillNames] = useState<string[]>([]);
+
+  const handleImportTemplate = useCallback(() => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".md,.markdown";
+    input.onchange = async () => {
+      const file = input.files?.[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const parsed = parseAgentMarkdown(text);
+        setName(parsed.createRequest.name || "");
+        setDescription(parsed.createRequest.description || "");
+        if (parsed.createRequest.model) setModel(parsed.createRequest.model);
+        if (parsed.createRequest.visibility) setVisibility(parsed.createRequest.visibility);
+        setImportedInstructions(parsed.createRequest.instructions || null);
+        setImportedSkillNames(parsed.skillNames);
+        toast.success(`已导入: ${parsed.createRequest.name}`);
+      } catch {
+        toast.error("模板解析失败");
+      }
+    };
+    input.click();
+  }, []);
 
   useEffect(() => {
     if (!selectedRuntimeId && filteredRuntimes[0]) {
@@ -133,7 +162,8 @@ export function CreateAgentDialog({
           data.max_concurrent_tasks = template.max_concurrent_tasks;
         }
       }
-      await onCreate(data);
+      if (importedInstructions) data.instructions = importedInstructions;
+      await onCreate(data, importedSkillNames);
       onClose();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t.agents.createFailed);
@@ -143,7 +173,7 @@ export function CreateAgentDialog({
 
   return (
     <Dialog open onOpenChange={(v) => { if (!v) onClose(); }}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[85vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>
             {isDuplicate ? t.agents.duplicateAgent : t.agents.createAgent}
@@ -155,7 +185,19 @@ export function CreateAgentDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 min-w-0">
+        <div className="space-y-4 min-w-0 overflow-y-auto flex-1">
+          {!isDuplicate && (
+            <Button variant="outline" size="sm" className="w-full" onClick={handleImportTemplate}>
+              <Upload className="mr-1 h-3.5 w-3.5" />
+              从模板导入
+            </Button>
+          )}
+          {importedInstructions && (
+            <p className="text-xs text-green-600">
+              ✓ 已导入模板 ({importedInstructions.length} 字指令{importedSkillNames.length > 0 ? ` + ${importedSkillNames.length} 技能` : ""})
+            </p>
+          )}
+
           <div>
             <Label className="text-xs text-muted-foreground">{t.agents.name}</Label>
             <Input

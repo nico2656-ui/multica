@@ -21,9 +21,10 @@ import { DesktopRuntimesPage } from "./components/desktop-runtimes-page";
 import { AgentsPage } from "@multica/views/agents";
 import { InboxPage } from "@multica/views/inbox";
 import { SettingsPage } from "@multica/views/settings";
-import { Server, Download } from "lucide-react";
+import { Server, Download, Database } from "lucide-react";
 import { DaemonSettingsTab } from "./components/daemon-settings-tab";
 import { SelfUpdateSettings } from "./components/self-update-settings";
+import { ServerSettingsTab } from "./components/server-settings-tab";
 import { WorkspaceRouteLayout } from "./components/workspace-route-layout";
 
 /**
@@ -147,6 +148,12 @@ export const appRoutes: RouteObject[] = [
                     label: "Daemon",
                     icon: Server,
                     content: <DaemonSettingsTab />,
+                  },
+                  {
+                    value: "server",
+                    label: "服务器",
+                    icon: Database,
+                    content: <ServerSettingsTab />,
                   },
                   {
                     value: "self-update",

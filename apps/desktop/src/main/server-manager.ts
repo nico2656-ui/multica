@@ -1,6 +1,6 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, ipcMain } from "electron";
 import { spawn, execSync, type ChildProcess } from "child_process";
-import { existsSync, mkdirSync, writeFileSync, readFileSync, rmSync } from "fs";
+import { existsSync, mkdirSync, writeFileSync, readFileSync, rmSync, readdirSync } from "fs";
 import { join } from "path";
 
 const PG_PORT = 15432;
@@ -56,7 +56,14 @@ function sendProgress(stage: ServerStage, message: string, log = ""): void {
   const payload: ServerProgress = { stage, message, log };
   latestProgress = payload;
   console.log(`[server:${stage}] ${message}${log ? " | " + log : ""}`);
-  state.getMainWindow()?.webContents.send("server:progress", payload);
+  try {
+    const win = state.getMainWindow();
+    if (win && !win.isDestroyed()) {
+      win.webContents.send("server:progress", payload);
+    }
+  } catch {
+    // Window destroyed during restart — progress is still pollable
+  }
 }
 
 // ---- Helpers ----
@@ -370,6 +377,7 @@ function startGoServer(): Promise<void> {
       const msg = d.toString().trim();
       outputBuf += msg + "\n";
       console.log("[server]", msg);
+      if (msg) sendProgress("starting_server", "后端服务启动中...", msg);
       if (
         !started &&
         (msg.includes("server starting") || msg.includes("listening"))
@@ -400,7 +408,10 @@ function startGoServer(): Promise<void> {
 
     proc.stderr.on("data", (d: Buffer) => {
       const msg = d.toString().trim();
-      if (msg) outputBuf += "[stderr] " + msg + "\n";
+      if (msg) {
+        outputBuf += "[stderr] " + msg + "\n";
+        sendProgress("starting_server", "后端服务启动中...", "[stderr] " + msg);
+      }
       console.log("[server:err]", msg);
     });
 
@@ -567,6 +578,10 @@ let setupPromise: Promise<void> | null = null;
 export async function setupServerManager(
   windowGetter: () => BrowserWindow | null,
 ): Promise<void> {
+  // Register IPC handlers (safe to call multiple times — last registration wins)
+  registerServerSettingsIPC();
+  registerTemplateIPC();
+
   // Guard against concurrent calls
   if (state.starting) return setupPromise!;
   state.starting = true;
@@ -574,6 +589,19 @@ export async function setupServerManager(
   setupPromise = (async () => {
     try {
       state.getMainWindow = windowGetter;
+
+      // Check for reset-db flag
+      const resetFlag = join(app.getPath("userData"), "reset-db.flag");
+      if (existsSync(resetFlag)) {
+        const ddir = dataDir();
+        if (existsSync(ddir)) {
+          sendProgress("init_pg", "正在重置数据库...");
+          rmSync(ddir, { recursive: true, force: true });
+        }
+        rmSync(resetFlag, { force: true });
+        sendProgress("init_pg", "数据库已重置，正在重新初始化...");
+      }
+
       const binDir = pgsqlBinDir();
       const pgCtlPath = join(binDir, "pg_ctl.exe");
 
@@ -637,6 +665,119 @@ export async function setupServerManager(
   })();
 
   return setupPromise;
+}
+
+// ---- Server preferences ----
+
+export interface ServerPrefs {
+  pgPort: number;
+  serverPort: number;
+  autoStart: boolean;
+}
+
+const DEFAULT_PREFS: ServerPrefs = { pgPort: PG_PORT, serverPort: SERVER_PORT, autoStart: true };
+const PREFS_PATH = join(app.getPath("userData"), "server-prefs.json");
+
+function loadServerPrefs(): ServerPrefs {
+  try {
+    const raw = readFileSync(PREFS_PATH, "utf-8");
+    const parsed = JSON.parse(raw);
+    return { ...DEFAULT_PREFS, ...parsed };
+  } catch {
+    return { ...DEFAULT_PREFS };
+  }
+}
+
+function saveServerPrefs(prefs: ServerPrefs): void {
+  writeFileSync(PREFS_PATH, JSON.stringify(prefs, null, 2), "utf-8");
+}
+
+function registerServerSettingsIPC(): void {
+  ipcMain.handle("server:get-prefs", () => loadServerPrefs());
+
+  ipcMain.handle("server:set-prefs", (_e, partial: Partial<ServerPrefs>) => {
+    const current = loadServerPrefs();
+    const merged = { ...current, ...partial };
+    saveServerPrefs(merged);
+    return merged;
+  });
+
+  ipcMain.handle("server:reset-db", () => {
+    const flagPath = join(app.getPath("userData"), "reset-db.flag");
+    writeFileSync(flagPath, "reset-on-next-launch", "utf-8");
+    return { success: true };
+  });
+
+  ipcMain.handle("server:export-db", async () => {
+    const prefs = loadServerPrefs();
+    const pgDump = join(pgsqlBinDir(), "pg_dump.exe");
+    if (!existsSync(pgDump)) {
+      throw new Error("pg_dump.exe not found — backup unavailable");
+    }
+    // pg_dump writes to stdout; we capture it
+    return runCommand(pgDump, [
+      "-h", "localhost",
+      "-p", String(prefs.pgPort),
+      "-U", PG_USER,
+      "-d", PG_DB,
+      "--no-password",
+    ], {}, 60_000);
+  });
+
+  ipcMain.handle("server:import-db", async (_e, filePath: string) => {
+    if (!existsSync(filePath)) throw new Error(`File not found: ${filePath}`);
+    const prefs = loadServerPrefs();
+    const psql = join(pgsqlBinDir(), "psql.exe");
+    await runCommand(psql, [
+      "-h", "localhost",
+      "-p", String(prefs.pgPort),
+      "-U", PG_USER,
+      "-d", PG_DB,
+      "-f", filePath,
+    ], {}, 120_000);
+    return { success: true };
+  });
+}
+
+// ---- Agent template folder ----
+
+const TEMPLATES_DIR = join(app.getPath("userData"), "agent-templates");
+
+function ensureTemplatesDir(): string {
+  mkdirSync(TEMPLATES_DIR, { recursive: true });
+  return TEMPLATES_DIR;
+}
+
+function registerTemplateIPC(): void {
+  const { shell } = require("electron");
+
+  ipcMain.handle("templates:list", () => {
+    const dir = ensureTemplatesDir();
+    try {
+      const files = readdirSync(dir).filter((f: string) => f.endsWith(".md"));
+      return files.map((f: string) => {
+        const content = readFileSync(join(dir, f), "utf-8");
+        const nameMatch = content.match(/^---\nname:\s*(.+)$/m);
+        const name = nameMatch?.[1]?.trim() ?? f.replace(/\.md$/, "");
+        return { filename: f, name, path: join(dir, f) };
+      });
+    } catch {
+      return [];
+    }
+  });
+
+  ipcMain.handle("templates:read", (_e, filepath: string) => {
+    try {
+      return readFileSync(filepath, "utf-8");
+    } catch {
+      throw new Error(`Cannot read template: ${filepath}`);
+    }
+  });
+
+  ipcMain.handle("templates:open-folder", () => {
+    const dir = ensureTemplatesDir();
+    shell.openPath(dir);
+  });
 }
 
 export function getLatestProgress(): ServerProgress {

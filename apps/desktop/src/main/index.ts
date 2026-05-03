@@ -37,6 +37,14 @@ if (process.platform !== "win32") {
   process.env.PATH = `${fallbackPaths.join(":")}:${process.env.PATH ?? ""}`;
 }
 
+// During restart, the window is destroyed before child processes stop.
+// IPC send to a destroyed window throws "Object has been destroyed".
+// This is harmless — the app is already quitting.
+process.on("uncaughtException", (err) => {
+  if (err.message?.includes("Object has been destroyed")) return;
+  console.error("[uncaughtException]", err);
+});
+
 const PROTOCOL = "multica";
 
 let mainWindow: BrowserWindow | null = null;

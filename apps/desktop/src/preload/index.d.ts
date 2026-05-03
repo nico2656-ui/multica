@@ -5,6 +5,7 @@ interface DesktopAPI {
   appInfo: {
     version: string;
     os: "macos" | "windows" | "linux" | "unknown";
+    embeddedServer: boolean;
   };
   /** Listen for auth token delivered via deep link. Returns an unsubscribe function. */
   onAuthToken: (callback: (token: string) => void) => () => void;
@@ -32,8 +33,6 @@ interface DesktopAPI {
       issueKey: string;
     }) => void,
   ) => () => void;
-  /** True if embedded PostgreSQL is bundled (self-hosted build). */
-  embeddedServer: boolean;
   /** Listen for embedded server startup progress. Returns unsubscribe. */
   onServerProgress: (callback: (progress: { stage: string; message: string; log: string }) => void) => () => void;
   /** Poll current server startup progress. */
@@ -77,6 +76,20 @@ interface DaemonAPI {
   openLogFile: () => Promise<{ success: boolean; error?: string }>;
 }
 
+interface ServerSettingsAPI {
+  getPrefs: () => Promise<{ pgPort: number; serverPort: number; autoStart: boolean }>;
+  setPrefs: (partial: Partial<{ pgPort: number; serverPort: number; autoStart: boolean }>) => Promise<{ pgPort: number; serverPort: number; autoStart: boolean }>;
+  resetDatabase: () => Promise<{ success: boolean }>;
+  exportDb: () => Promise<string>;
+  importDb: (filePath: string) => Promise<{ success: boolean }>;
+}
+
+interface TemplatesAPI {
+  list: () => Promise<{ filename: string; name: string; path: string }[]>;
+  read: (filepath: string) => Promise<string>;
+  openFolder: () => Promise<void>;
+}
+
 interface SelfUpdateAPI {
   getRepoPath: () => Promise<{ path: string | null }>;
   setRepoPath: (path: string) => Promise<{ success: boolean; error?: string }>;
@@ -102,6 +115,8 @@ declare global {
     desktopAPI: DesktopAPI;
     daemonAPI: DaemonAPI;
     updater: UpdaterAPI;
+    serverSettings: ServerSettingsAPI;
+    templates: TemplatesAPI;
     selfUpdate: SelfUpdateAPI;
   }
 }

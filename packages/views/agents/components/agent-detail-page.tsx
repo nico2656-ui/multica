@@ -6,10 +6,12 @@ import {
   ArrowLeft,
   MoreHorizontal,
   Trash2,
+  Download,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Agent, UpdateAgentRequest } from "@multica/core/types";
+import { exportAgentToMarkdown } from "@multica/core/agent-template";
 import {
   type AgentPresenceDetail,
   useWorkspacePresenceMap,
@@ -134,7 +136,7 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
             <p className="mt-1 text-xs text-muted-foreground">
               {agentsError instanceof Error
                 ? agentsError.message
-                : "This agent may have been archived or deleted."}
+                : t.agents.agentUnavailableText}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -192,7 +194,7 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
         <div className="flex shrink-0 items-center gap-2 border-b bg-muted/50 px-6 py-2 text-xs text-muted-foreground">
           <AlertCircle className="h-3.5 w-3.5 shrink-0" />
           <span className="flex-1">
-            This agent is archived. It cannot be assigned or mentioned.
+            {t.agents.agentArchivedBanner}
           </span>
           {canEdit.allowed && (
             <Button
@@ -244,9 +246,7 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
                   {t.agents.archiveAgent_}
                 </DialogTitle>
                 <DialogDescription className="text-xs">
-                  &quot;{agent.name}&quot; will be archived. It won&apos;t be
-                  assignable or mentionable, but all history is preserved. You
-                  can restore it later.
+                  {t.agents.archiveDialogDesc(agent.name)}
                 </DialogDescription>
               </DialogHeader>
             </div>
@@ -323,6 +323,22 @@ function DetailHeader({
             <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-auto">
+            <DropdownMenuItem
+              onClick={() => {
+                if (!agent) return;
+                const md = exportAgentToMarkdown(agent);
+                const blob = new Blob([md], { type: "text/markdown" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `${agent.name.replace(/\s+/g, "-")}.md`;
+                a.click();
+                URL.revokeObjectURL(url);
+              }}
+            >
+              <Download className="h-3.5 w-3.5" />
+              导出模板
+            </DropdownMenuItem>
             <DropdownMenuItem
               className="text-destructive"
               onClick={onArchive}

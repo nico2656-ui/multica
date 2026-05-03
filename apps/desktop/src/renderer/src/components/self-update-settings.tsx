@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@multica/ui/components/ui/button";
 import { Input } from "@multica/ui/components/ui/input";
-import { RefreshCw, CheckCircle2, AlertCircle, FolderOpen } from "lucide-react";
+import { RefreshCw, CheckCircle2, AlertCircle } from "lucide-react";
 import { cn } from "@multica/ui/lib/utils";
 
 export function SelfUpdateSettings() {

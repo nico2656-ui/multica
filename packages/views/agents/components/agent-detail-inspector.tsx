@@ -22,6 +22,7 @@ import { useFileUpload } from "@multica/core/hooks/use-file-upload";
 import { useAppLocale } from "@multica/i18n";
 import { timeAgo } from "@multica/core/utils";
 import { Button } from "@multica/ui/components/ui/button";
+import { Switch } from "@multica/ui/components/ui/switch";
 import { ActorAvatar } from "../../common/actor-avatar";
 import { Input } from "@multica/ui/components/ui/input";
 import {
@@ -143,6 +144,25 @@ export function AgentDetailInspector({
             canEdit={canEdit}
             onChange={(n) => update({ max_concurrent_tasks: n })}
           />
+        </PropRow>
+        <PropRow label="持续工作" interactive={false}>
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={!!(agent.runtime_config as any)?.continuous}
+              onCheckedChange={(checked) =>
+                update({
+                  runtime_config: {
+                    ...(agent.runtime_config ?? {}),
+                    continuous: checked,
+                  },
+                })
+              }
+              disabled={!canEdit}
+            />
+            <span className="text-xs text-muted-foreground">
+              完成后自动领取新任务
+            </span>
+          </div>
         </PropRow>
       </Section>
 

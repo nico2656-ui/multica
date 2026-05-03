@@ -159,6 +159,27 @@ const daemonAPI = {
     ipcRenderer.invoke("daemon:open-log-file"),
 };
 
+const serverSettingsAPI = {
+  getPrefs: (): Promise<{ pgPort: number; serverPort: number; autoStart: boolean }> =>
+    ipcRenderer.invoke("server:get-prefs"),
+  setPrefs: (partial: Partial<{ pgPort: number; serverPort: number; autoStart: boolean }>): Promise<{ pgPort: number; serverPort: number; autoStart: boolean }> =>
+    ipcRenderer.invoke("server:set-prefs", partial),
+  resetDatabase: (): Promise<{ success: boolean }> =>
+    ipcRenderer.invoke("server:reset-db"),
+  exportDb: (): Promise<string> =>
+    ipcRenderer.invoke("server:export-db"),
+  importDb: (filePath: string): Promise<{ success: boolean }> =>
+    ipcRenderer.invoke("server:import-db", filePath),
+};
+
+const templatesAPI = {
+  list: (): Promise<{ filename: string; name: string; path: string }[]> =>
+    ipcRenderer.invoke("templates:list"),
+  read: (filepath: string): Promise<string> =>
+    ipcRenderer.invoke("templates:read", filepath),
+  openFolder: () => ipcRenderer.invoke("templates:open-folder"),
+};
+
 const selfUpdateAPI = {
   getRepoPath: (): Promise<{ path: string | null }> =>
     ipcRenderer.invoke("update:get-repo-path"),
@@ -198,6 +219,8 @@ if (process.contextIsolated) {
   contextBridge.exposeInMainWorld("desktopAPI", desktopAPI);
   contextBridge.exposeInMainWorld("daemonAPI", daemonAPI);
   contextBridge.exposeInMainWorld("updater", updaterAPI);
+  contextBridge.exposeInMainWorld("serverSettings", serverSettingsAPI);
+  contextBridge.exposeInMainWorld("templates", templatesAPI);
   contextBridge.exposeInMainWorld("selfUpdate", selfUpdateAPI);
 } else {
   // @ts-expect-error - fallback for non-isolated context
@@ -208,6 +231,10 @@ if (process.contextIsolated) {
   window.daemonAPI = daemonAPI;
   // @ts-expect-error - fallback for non-isolated context
   window.updater = updaterAPI;
+  // @ts-expect-error - fallback for non-isolated context
+  window.serverSettings = serverSettingsAPI;
+  // @ts-expect-error - fallback for non-isolated context
+  window.templates = templatesAPI;
   // @ts-expect-error - fallback for non-isolated context
   window.selfUpdate = selfUpdateAPI;
 }

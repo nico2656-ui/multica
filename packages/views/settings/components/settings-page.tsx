@@ -4,6 +4,7 @@ import React from "react";
 import { User, Palette, Key, Settings, Users, FolderGit2, FlaskConical, Bell } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@multica/ui/components/ui/tabs";
 import { useCurrentWorkspace } from "@multica/core/paths";
+import { useAppLocale } from "@multica/i18n";
 import { AccountTab } from "./account-tab";
 import { AppearanceTab } from "./appearance-tab";
 import { TokensTab } from "./tokens-tab";
@@ -13,20 +14,6 @@ import { RepositoriesTab } from "./repositories-tab";
 import { LabsTab } from "./labs-tab";
 import { NotificationsTab } from "./notifications-tab";
 
-const accountTabs = [
-  { value: "profile", label: "Profile", icon: User },
-  { value: "appearance", label: "Appearance", icon: Palette },
-  { value: "notifications", label: "Notifications", icon: Bell },
-  { value: "tokens", label: "API Tokens", icon: Key },
-];
-
-const workspaceTabs = [
-  { value: "workspace", label: "General", icon: Settings },
-  { value: "repositories", label: "Repositories", icon: FolderGit2 },
-  { value: "labs", label: "Labs", icon: FlaskConical },
-  { value: "members", label: "Members", icon: Users },
-];
-
 export interface ExtraSettingsTab {
   value: string;
   label: string;
@@ -35,22 +22,36 @@ export interface ExtraSettingsTab {
 }
 
 interface SettingsPageProps {
-  /** Additional tabs injected by platform (e.g. desktop daemon settings) */
   extraAccountTabs?: ExtraSettingsTab[];
 }
 
 export function SettingsPage({ extraAccountTabs }: SettingsPageProps = {}) {
+  const { t } = useAppLocale();
   const workspaceName = useCurrentWorkspace()?.name;
+
+  const accountTabs = [
+    { value: "profile", label: t.settings.profile, icon: User },
+    { value: "appearance", label: t.settings.appearance, icon: Palette },
+    { value: "notifications", label: t.settings.notifications, icon: Bell },
+    { value: "tokens", label: t.settings.apiTokens, icon: Key },
+  ];
+
+  const workspaceTabs = [
+    { value: "workspace", label: t.settings.general, icon: Settings },
+    { value: "repositories", label: t.settings.repositories, icon: FolderGit2 },
+    { value: "labs", label: t.settings.labs, icon: FlaskConical },
+    { value: "members", label: t.settings.members, icon: Users },
+  ];
 
   return (
     <Tabs defaultValue="profile" orientation="vertical" className="flex-1 min-h-0 gap-0">
       {/* Left nav */}
       <div className="w-52 shrink-0 border-r overflow-y-auto p-4">
-        <h1 className="text-sm font-semibold mb-4 px-2">Settings</h1>
+        <h1 className="text-sm font-semibold mb-4 px-2">{t.settings.title}</h1>
         <TabsList variant="line" className="flex-col items-stretch">
           {/* My Account group */}
           <span className="px-2 pb-1 pt-2 text-xs font-medium text-muted-foreground">
-            My Account
+            {t.settings.myAccount}
           </span>
           {accountTabs.map((tab) => (
             <TabsTrigger key={tab.value} value={tab.value}>
@@ -67,7 +68,7 @@ export function SettingsPage({ extraAccountTabs }: SettingsPageProps = {}) {
 
           {/* Workspace group */}
           <span className="px-2 pb-1 pt-4 text-xs font-medium text-muted-foreground truncate">
-            {workspaceName ?? "Workspace"}
+            {workspaceName ?? t.settings.workspace_}
           </span>
           {workspaceTabs.map((tab) => (
             <TabsTrigger key={tab.value} value={tab.value}>

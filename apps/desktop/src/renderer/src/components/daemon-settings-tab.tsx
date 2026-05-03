@@ -85,13 +85,13 @@ export function DaemonSettingsTab() {
     <div>
       <h2 className="text-lg font-semibold">{t.desktop.daemonSettings}</h2>
       <p className="text-sm text-muted-foreground mt-1">
-        Configure how the local agent daemon behaves with the desktop app.
+        {t.desktop.daemonSettingsDesc}
       </p>
 
       <div className="mt-6 divide-y">
         <SettingRow
           label={t.desktop.autoStartDaemon}
-          description="Automatically start the daemon when the app opens and you are logged in."
+          description={t.desktop.autoStartDaemonDesc}
         >
           <Switch
             checked={prefs.autoStart}
@@ -102,7 +102,7 @@ export function DaemonSettingsTab() {
 
         <SettingRow
           label={t.desktop.autoStopDaemon}
-          description="Stop the daemon when the desktop app is closed. Disable this to keep the daemon running in the background."
+          description={t.desktop.autoStopDaemonDesc}
         >
           <Switch
             checked={prefs.autoStop}
@@ -112,13 +112,13 @@ export function DaemonSettingsTab() {
         </SettingRow>
 
         <div className="py-4">
-          <p className="text-sm font-medium">CLI Status</p>
+          <p className="text-sm font-medium">{t.desktop.cliStatus}</p>
           <p className="text-sm text-muted-foreground mt-1">
             {cliInstalled === null
-              ? "Checking…"
+              ? t.desktop.cliChecking
               : cliInstalled
-                ? "multica CLI is installed and available in PATH."
-                : "multica CLI not found. Install it to enable daemon management."}
+                ? t.desktop.cliInstalled
+                : t.desktop.cliNotFound}
           </p>
           {cliInstalled === false && (
             <Button
@@ -131,24 +131,20 @@ export function DaemonSettingsTab() {
                 )
               }
             >
-              Installation Guide
+              {t.desktop.installGuide}
             </Button>
           )}
         </div>
       </div>
 
-      {/* Diagnostics — moved out of the logs panel so the panel can focus
-          on logs. These fields matter for support tickets and bug reports,
-          not for everyday use. */}
       <div className="mt-8">
-        <h3 className="text-sm font-semibold">Diagnostics</h3>
+        <h3 className="text-sm font-semibold">{t.desktop.diagnostics}</h3>
         <p className="text-xs text-muted-foreground mt-1">
-          Identification and connection details. Useful when filing a bug
-          report or investigating why a runtime isn&apos;t showing up.
+          {t.desktop.diagnosticsDesc}
         </p>
         <div className="mt-3 rounded-lg border bg-muted/20 px-4 py-2">
           <DiagnosticsRow
-            label="State"
+            label={t.desktop.diagState}
             value={
               <span className="inline-flex items-center gap-1.5">
                 <span
@@ -167,40 +163,15 @@ export function DaemonSettingsTab() {
               </span>
             }
           />
+          <DiagnosticsRow label={t.desktop.diagUptime} value={status.uptime ? formatUptime(status.uptime) : "—"} />
+          <DiagnosticsRow label={t.desktop.diagPid} value={status.pid ?? "—"} mono={!!status.pid} />
+          <DiagnosticsRow label={t.desktop.diagDaemonId} value={status.daemonId ?? "—"} mono={!!status.daemonId} />
+          <DiagnosticsRow label={t.desktop.diagProfile} value={status.profile || "default"} />
+          <DiagnosticsRow label={t.desktop.diagServerUrl} value={status.serverUrl ?? "—"} mono={!!status.serverUrl} />
+          <DiagnosticsRow label={t.desktop.diagDeviceName} value={status.deviceName ?? "—"} />
           <DiagnosticsRow
-            label="Uptime"
-            value={status.uptime ? formatUptime(status.uptime) : "—"}
-          />
-          <DiagnosticsRow
-            label="PID"
-            value={status.pid ?? "—"}
-            mono={!!status.pid}
-          />
-          <DiagnosticsRow
-            label="Daemon ID"
-            value={status.daemonId ?? "—"}
-            mono={!!status.daemonId}
-          />
-          <DiagnosticsRow
-            label="Profile"
-            value={status.profile || "default"}
-          />
-          <DiagnosticsRow
-            label="Server URL"
-            value={status.serverUrl ?? "—"}
-            mono={!!status.serverUrl}
-          />
-          <DiagnosticsRow
-            label="Device name"
-            value={status.deviceName ?? "—"}
-          />
-          <DiagnosticsRow
-            label="Workspaces"
-            value={
-              typeof status.workspaceCount === "number"
-                ? status.workspaceCount
-                : "—"
-            }
+            label={t.desktop.diagWorkspaces}
+            value={typeof status.workspaceCount === "number" ? status.workspaceCount : "—"}
           />
         </div>
       </div>

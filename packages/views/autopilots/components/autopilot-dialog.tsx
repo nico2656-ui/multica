@@ -273,6 +273,9 @@ export function AutopilotDialog(props: AutopilotDialogProps) {
     return getDefaultTriggerConfig();
   })();
   const [triggerConfig, setTriggerConfig] = useState<TriggerConfig>(initialCfg);
+  const [triggerKind, setTriggerKind] = useState<"schedule" | "event">("schedule");
+  const [eventName, setEventName] = useState("");
+  const [eventConditions, setEventConditions] = useState<{ key: string; value: string }[]>([]);
 
   const initialCronRef = useRef(toCronExpression(initialCfg));
   const initialTimezoneRef = useRef(initialCfg.timezone);
@@ -316,10 +319,14 @@ export function AutopilotDialog(props: AutopilotDialogProps) {
         try {
           await createTrigger.mutateAsync({
             autopilotId: autopilot.id,
-            kind: "schedule",
-            cron_expression: toCronExpression(triggerConfig),
-            timezone: triggerConfig.timezone,
-          });
+            kind: triggerKind,
+            cron_expression: triggerKind === "schedule" ? toCronExpression(triggerConfig) : undefined,
+            timezone: triggerKind === "schedule" ? triggerConfig.timezone : undefined,
+            event_name: triggerKind === "event" ? eventName : undefined,
+            conditions: triggerKind === "event" && eventConditions.length > 0
+              ? Object.fromEntries(eventConditions.map(c => [c.key, c.value]))
+              : undefined,
+          } as any);
         } catch {
           scheduleOk = false;
         }
@@ -348,10 +355,14 @@ export function AutopilotDialog(props: AutopilotDialogProps) {
             } else {
               await createTrigger.mutateAsync({
                 autopilotId: props.autopilotId,
-                kind: "schedule",
-                cron_expression: toCronExpression(triggerConfig),
-                timezone: triggerConfig.timezone,
-              });
+                kind: triggerKind,
+                cron_expression: triggerKind === "schedule" ? toCronExpression(triggerConfig) : undefined,
+                timezone: triggerKind === "schedule" ? triggerConfig.timezone : undefined,
+                event_name: triggerKind === "event" ? eventName : undefined,
+                conditions: triggerKind === "event" && eventConditions.length > 0
+                  ? Object.fromEntries(eventConditions.map(c => [c.key, c.value]))
+                  : undefined,
+              } as any);
             }
           } catch {
             scheduleOk = false;
@@ -488,6 +499,28 @@ export function AutopilotDialog(props: AutopilotDialogProps) {
 
             <OutputModeSection mode={executionMode} onChange={setExecutionMode} />
 
+            {/* Trigger kind selector */}
+            <div className="space-y-2">
+              <div className="flex rounded-lg border bg-muted/20 p-0.5">
+                {(["schedule", "event"] as const).map((k) => (
+                  <button
+                    key={k}
+                    type="button"
+                    onClick={() => setTriggerKind(k)}
+                    className={cn(
+                      "flex-1 rounded-md py-1.5 text-xs font-medium transition-colors",
+                      triggerKind === k
+                        ? "bg-background text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    {k === "schedule" ? "定时" : "事件"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {triggerKind === "schedule" ? (
             <ScheduleSection
               config={triggerConfig}
               onChange={setTriggerConfig}
@@ -498,6 +531,14 @@ export function AutopilotDialog(props: AutopilotDialogProps) {
                   : undefined
               }
             />
+            ) : (
+            <EventSection
+              eventName={eventName}
+              onEventNameChange={setEventName}
+              conditions={eventConditions}
+              onConditionsChange={setEventConditions}
+            />
+            )}
           </aside>
         </div>
 
@@ -643,6 +684,94 @@ function OutputModeSection({
             </button>
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+// Supported event types
+const EVENT_TYPES = [
+  { value: "issue:updated", label: "Issue 更新" },
+  { value: "issue_labels:changed", label: "Issue 标签变更" },
+  { value: "task:completed", label: "任务完成" },
+  { value: "task:failed", label: "任务失败" },
+  { value: "task:cancelled", label: "任务取消" },
+  { value: "autopilot:run_done", label: "Autopilot 完成" },
+];
+
+function EventSection({
+  eventName,
+  onEventNameChange,
+  conditions,
+  onConditionsChange,
+}: {
+  eventName: string;
+  onEventNameChange: (v: string) => void;
+  conditions: { key: string; value: string }[];
+  onConditionsChange: (v: { key: string; value: string }[]) => void;
+}) {
+  return (
+    <div className="space-y-3">
+      <div className="space-y-1.5">
+        <label className="text-xs font-medium text-muted-foreground">触发事件</label>
+        <select
+          value={eventName}
+          onChange={(e) => onEventNameChange(e.target.value)}
+          className="w-full rounded-md border bg-transparent px-2.5 py-1.5 text-xs"
+        >
+          <option value="">选择事件...</option>
+          {EVENT_TYPES.map((ev) => (
+            <option key={ev.value} value={ev.value}>{ev.label}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between">
+          <label className="text-xs font-medium text-muted-foreground">匹配条件</label>
+          <button
+            type="button"
+            onClick={() => onConditionsChange([...conditions, { key: "", value: "" }])}
+            className="text-xs text-primary hover:underline"
+          >
+            + 添加
+          </button>
+        </div>
+        {conditions.length === 0 && (
+          <p className="text-xs text-muted-foreground">留空匹配所有事件；添加条件后仅匹配符合条件的。</p>
+        )}
+        {conditions.map((c, i) => (
+          <div key={i} className="flex gap-1.5">
+            <input
+              value={c.key}
+              onChange={(e) => {
+                const next = [...conditions];
+                next[i] = { ...next[i], key: e.target.value };
+                onConditionsChange(next);
+              }}
+              placeholder="key (如 label)"
+              className="flex-1 rounded-md border bg-transparent px-2 py-1 text-xs"
+            />
+            <span className="text-xs text-muted-foreground self-center">=</span>
+            <input
+              value={c.value}
+              onChange={(e) => {
+                const next = [...conditions];
+                next[i] = { ...next[i], value: e.target.value };
+                onConditionsChange(next);
+              }}
+              placeholder="value (如 bug)"
+              className="flex-1 rounded-md border bg-transparent px-2 py-1 text-xs"
+            />
+            <button
+              type="button"
+              onClick={() => onConditionsChange(conditions.filter((_, j) => j !== i))}
+              className="text-xs text-red-500 hover:underline px-1"
+            >
+              ✕
+            </button>
+          </div>
+        ))}
       </div>
     </div>
   );

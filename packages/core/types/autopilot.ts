@@ -2,11 +2,11 @@ export type AutopilotStatus = "active" | "paused" | "archived";
 
 export type AutopilotExecutionMode = "create_issue" | "run_only";
 
-export type AutopilotTriggerKind = "schedule" | "webhook" | "api";
+export type AutopilotTriggerKind = "schedule" | "webhook" | "api" | "event";
 
 export type AutopilotRunStatus = "issue_created" | "running" | "completed" | "failed";
 
-export type AutopilotRunSource = "schedule" | "manual" | "webhook" | "api";
+export type AutopilotRunSource = "schedule" | "manual" | "webhook" | "api" | "event";
 
 export interface Autopilot {
   id: string;
@@ -34,6 +34,8 @@ export interface AutopilotTrigger {
   next_run_at: string | null;
   webhook_token: string | null;
   label: string | null;
+  event_name: string | null;
+  conditions: Record<string, string> | null;
   last_fired_at: string | null;
   created_at: string;
   updated_at: string;

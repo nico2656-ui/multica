@@ -59,7 +59,7 @@ function formatElapsed(ms: number): string {
   return `${m}m${rs}s`;
 }
 
-function StartupScreen() {
+function StartupScreen({ onReady }: { onReady: () => void }) {
   const [progress, setProgress] = useState<{ stage: string; message: string; log: string }>({
     stage: "checking",
     message: "正在连接后台服务...",
@@ -67,19 +67,17 @@ function StartupScreen() {
   });
   const [logs, setLogs] = useState<string[]>([]);
   const [elapsed, setElapsed] = useState(0);
-  const [serverReady, setServerReady] = useState(false);
   const startRef = useRef(Date.now());
 
   // Poll for progress continuously (covers the gap before IPC stream starts).
   useEffect(() => {
     let stopped = false;
-    let lastStage = "";
     async function poll() {
       while (!stopped) {
         try {
           const p = await window.desktopAPI.getServerProgress();
           if (!stopped && p && p.stage) {
-            if (p.stage === "ready") setServerReady(true);
+            if (p.stage === "ready") onReady();
             setProgress((prev) => {
               if (prev.stage !== p.stage || prev.message !== p.message) {
                 const time = new Date().toLocaleTimeString();
@@ -88,7 +86,6 @@ function StartupScreen() {
               }
               return prev;
             });
-            lastStage = p.stage;
           }
         } catch { /* ignore */ }
         await new Promise((r) => setTimeout(r, 1500));
@@ -102,7 +99,7 @@ function StartupScreen() {
   useEffect(() => {
     return window.desktopAPI.onServerProgress((p) => {
       setProgress(p);
-      if (p.stage === "ready") setServerReady(true);
+      if (p.stage === "ready") onReady();
       const time = new Date().toLocaleTimeString();
       setLogs((prev) => [...prev.slice(-30), `[${time}] ${p.message}${p.log ? " — " + p.log : ""}`]);
     });
@@ -150,7 +147,6 @@ function StartupScreen() {
           {STAGE_ORDER.map((s, i) => {
             const done = i < currentIdx;
             const active = i === currentIdx;
-            const waiting = i > currentIdx;
             return (
               <div key={s} className="flex items-center gap-2 text-xs">
                 <span
@@ -194,6 +190,7 @@ function AppContent() {
   const user = useAuthStore((s) => s.user);
   const isLoading = useAuthStore((s) => s.isLoading);
   const isEmbedded = window.desktopAPI.appInfo.embeddedServer;
+  const [serverReady, setServerReady] = useState(false);
   const qc = useQueryClient();
   // Deep-link login runs loginWithToken → syncToken → listWorkspaces →
   // setQueryData sequentially. loginWithToken sets user+isLoading=false
@@ -382,7 +379,7 @@ function AppContent() {
   }, [user, workspaceListFetched, wsCount]);
 
   if (isEmbedded && !serverReady) {
-    return <StartupScreen />;
+    return <StartupScreen onReady={() => setServerReady(true)} />;
   }
 
   if (isLoading || bootstrapping) {
