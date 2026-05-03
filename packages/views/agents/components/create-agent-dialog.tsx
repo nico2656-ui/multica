@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { Cloud, ChevronDown, Globe, Lock, Loader2, Upload } from "lucide-react";
+import { Cloud, ChevronDown, Globe, Lock, Loader2, Upload, FolderOpen } from "lucide-react";
 import { parseAgentMarkdown } from "@multica/core/agent-template";
 import { ProviderLogo } from "../../runtimes/components/provider-logo";
 import { ActorAvatar } from "../../common/actor-avatar";
@@ -403,8 +403,12 @@ export function CreateAgentDialog({
           {/* Right: template import */}
           {!isDuplicate && (
             <div className="w-44 shrink-0 space-y-2 overflow-y-auto">
+              <p className="text-[10px] font-medium text-muted-foreground">Agent 模板</p>
               <Button variant="outline" size="sm" className="w-full" onClick={handleImportTemplate}>
                 <Upload className="mr-1 h-3 w-3" />从文件导入
+              </Button>
+              <Button variant="outline" size="sm" className="w-full" onClick={() => (window as any).templates?.openFolder?.()}>
+                <FolderOpen className="mr-1 h-3 w-3" />打开模板文件夹
               </Button>
               {folderTemplates.length > 0 && (
                 <div className="space-y-0.5 rounded border bg-muted/20 p-1.5">
