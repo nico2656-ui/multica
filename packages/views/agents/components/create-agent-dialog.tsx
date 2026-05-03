@@ -98,6 +98,29 @@ export function CreateAgentDialog({
   // Template import
   const [importedInstructions, setImportedInstructions] = useState<string | null>(null);
   const [importedSkillNames, setImportedSkillNames] = useState<string[]>([]);
+  const [folderTemplates, setFolderTemplates] = useState<{ filename: string; name: string; path: string }[]>([]);
+
+  // Load templates from agent-templates folder
+  useEffect(() => {
+    if (isDuplicate) return;
+    const api = (window as any).templates;
+    if (api?.list) api.list().then((l: any[]) => setFolderTemplates(l ?? [])).catch(() => {});
+  }, [isDuplicate]);
+
+  const applyFolderTemplate = useCallback(async (tpl: { path: string; name: string }) => {
+    try {
+      const api = (window as any).templates;
+      const content = await api.read(tpl.path);
+      const parsed = parseAgentMarkdown(content);
+      setName(parsed.createRequest.name || tpl.name);
+      setDescription(parsed.createRequest.description || "");
+      if (parsed.createRequest.model) setModel(parsed.createRequest.model);
+      if (parsed.createRequest.visibility) setVisibility(parsed.createRequest.visibility);
+      setImportedInstructions(parsed.createRequest.instructions || null);
+      setImportedSkillNames(parsed.skillNames);
+      toast.success(`已应用: ${tpl.name}`);
+    } catch { toast.error("模板读取失败"); }
+  }, []);
 
   const handleImportTemplate = useCallback(() => {
     const input = document.createElement("input");
@@ -173,7 +196,7 @@ export function CreateAgentDialog({
 
   return (
     <Dialog open onOpenChange={(v) => { if (!v) onClose(); }}>
-      <DialogContent className="sm:max-w-md max-h-[85vh] flex flex-col">
+      <DialogContent className="sm:max-w-xl max-h-[85vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>
             {isDuplicate ? t.agents.duplicateAgent : t.agents.createAgent}
@@ -185,18 +208,9 @@ export function CreateAgentDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 min-w-0 overflow-y-auto flex-1">
-          {!isDuplicate && (
-            <Button variant="outline" size="sm" className="w-full" onClick={handleImportTemplate}>
-              <Upload className="mr-1 h-3.5 w-3.5" />
-              从模板导入
-            </Button>
-          )}
-          {importedInstructions && (
-            <p className="text-xs text-green-600">
-              ✓ 已导入模板 ({importedInstructions.length} 字指令{importedSkillNames.length > 0 ? ` + ${importedSkillNames.length} 技能` : ""})
-            </p>
-          )}
+        <div className="flex gap-4 min-h-0 flex-1">
+          {/* Left: form fields */}
+          <div className="flex-1 space-y-3 overflow-y-auto min-w-0">
 
           <div>
             <Label className="text-xs text-muted-foreground">{t.agents.name}</Label>
@@ -384,6 +398,31 @@ export function CreateAgentDialog({
             onChange={setModel}
             disabled={!selectedRuntime}
           />
+        </div>
+
+          {/* Right: template import */}
+          {!isDuplicate && (
+            <div className="w-44 shrink-0 space-y-2 overflow-y-auto">
+              <Button variant="outline" size="sm" className="w-full" onClick={handleImportTemplate}>
+                <Upload className="mr-1 h-3 w-3" />从文件导入
+              </Button>
+              {folderTemplates.length > 0 && (
+                <div className="space-y-0.5 rounded border bg-muted/20 p-1.5">
+                  <p className="text-[10px] text-muted-foreground">模板 ({folderTemplates.length})</p>
+                  {folderTemplates.map((tpl) => (
+                    <button key={tpl.filename} type="button"
+                      onClick={() => applyFolderTemplate(tpl)}
+                      className="w-full truncate rounded px-1 py-0.5 text-left text-[10px] hover:bg-muted">
+                      {tpl.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {importedInstructions && (
+                <p className="text-[10px] text-green-600">✓ 已导入模板</p>
+              )}
+            </div>
+          )}
         </div>
 
         <DialogFooter>

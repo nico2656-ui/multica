@@ -88,30 +88,51 @@ function spawnAsync(cmd: string, args: string[], cwd: string): Promise<string> {
 
 export function applyPendingUpdate(): void {
   if (!existsSync(pendingDir)) return;
-  console.log("[update] Applying pending update...");
 
   const newAsar = join(pendingDir, "app.asar");
-  const targetAsar = join(installDir, "resources", "app.asar");
-  if (existsSync(newAsar)) {
-    try { copyFileSync(newAsar, targetAsar); } catch (err) {
-      console.error("[update] Failed to replace app.asar:", err);
-    }
+  if (!existsSync(newAsar)) {
+    // Stale partial dir — clean it up
+    try { rmSync(pendingDir, { recursive: true, force: true }); } catch {}
+    return;
   }
 
-  const newBinDir = join(pendingDir, "bin");
-  const targetBinDir = join(installDir, "resources", "app.asar.unpacked", "resources", "bin");
-  if (existsSync(newBinDir)) {
-    for (const name of readdirSync(newBinDir)) {
-      try { copyFileSync(join(newBinDir, name), join(targetBinDir, name)); } catch {}
-    }
-  }
+  console.log("[update] Applying pending update...");
+
+  // Write a swap script that runs after the app exits.
+  // Windows locks running app.asar so we can't overwrite it in-process.
+  const targetAsar = join(installDir, "resources", "app.asar");
+  const swapBat = join(app.getPath("temp"), "multica-swap.bat");
+
+  // Batch script: wait for app to exit, then swap files
+  const batContent = [
+    "@echo off",
+    ":retry",
+    `if exist "${targetAsar}" (`,
+    `  move /Y "${newAsar}" "${targetAsar}"`,
+    `) else (`,
+    "  timeout /t 1 >nul",
+    "  goto retry",
+    ")",
+    // Copy binaries
+    `xcopy /Y /Q "${join(pendingDir, 'bin', '*.exe')}" "${join(installDir, 'resources', 'app.asar.unpacked', 'resources', 'bin')}\\"`,
+    `rmdir /S /Q "${pendingDir}"`,
+    `del "%~f0"`,
+  ].join("\r\n");
 
   try {
-    rmSync(pendingDir, { recursive: true, force: true });
+    writeFileSync(swapBat, batContent);
+    // Spawn detached — runs after we exit because it waits for the target
+    spawn("cmd.exe", ["/c", swapBat], {
+      detached: true,
+      stdio: "ignore",
+      windowsHide: true,
+    });
+    console.log("[update] Swap script launched — will apply on exit");
   } catch (err) {
-    console.warn("[update] Could not clean pending-update dir:", err);
+    console.error("[update] Failed to create swap script:", err);
+    // Fallback: try copy right now (may fail if locked)
+    try { copyFileSync(newAsar, targetAsar); } catch {}
   }
-  console.log("[update] Pending update applied");
 }
 
 // ---- IPC handlers ----
